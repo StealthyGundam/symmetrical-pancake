@@ -36,7 +36,7 @@ body {
 #oled {
   left: 13.68%;
   top: 3.8%;
-  width: 72.59%; /* ensure fits within OLED PNG */
+  width: 72.59%;
   height: 22.18%;
   padding: 12px;
   white-space: pre-wrap;
@@ -77,67 +77,38 @@ body {
 <body>
 
 <div id="keypad-container">
-
   <img id="keypad-base" src="assets/Keypad__BASE.png">
-
   <div id="oled"></div>
   <div id="lcd"></div>
 
-  <!-- Buttons -->
-  <!-- ROW 1 -->
-  <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__1.png">
-  </button>
-  <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__2.png">
-  </button>
-  <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__3.png">
-  </button>
-
-  <!-- ROW 2 -->
-  <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__4.png">
-  </button>
-  <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__5.png">
-  </button>
-  <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__6.png">
-  </button>
-
-  <!-- ROW 3 -->
-  <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__7.png">
-  </button>
-  <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__8.png">
-  </button>
-  <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__9.png">
-  </button>
-
-  <!-- ROW 4 -->
-  <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__CLR.png">
-  </button>
-  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__0.png">
-  </button>
-  <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;">
-    <img src="assets/Keypad__ENT.png">
-  </button>
-
+  <!-- Buttons ROW 1 -->
+  <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
+  <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
+  <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
+  <!-- Buttons ROW 2 -->
+  <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__4.png"></button>
+  <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__5.png"></button>
+  <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__6.png"></button>
+  <!-- Buttons ROW 3 -->
+  <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__7.png"></button>
+  <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__8.png"></button>
+  <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__9.png"></button>
+  <!-- Buttons ROW 4 -->
+  <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
+  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
+  <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
 </div>
 
 <script>
 const PASSWORD = "1111";
 const MAX_LEN = 6;
 const CIPHER_INTERVAL = 30;
+const LOCKOUT_DURATION = 15; // seconds
 
 let input = "";
 let cipher = [];
-let secondsRemaining = CIPHER_INTERVAL;
+let cipherSeconds = CIPHER_INTERVAL;
+let lockoutSeconds = 0;
 
 const lcd = document.getElementById("lcd");
 const oled = document.getElementById("oled");
@@ -149,17 +120,33 @@ function generateCipher() {
     [digits[i], digits[j]] = [digits[j], digits[i]];
   }
   cipher = digits;
-  secondsRemaining = CIPHER_INTERVAL;
+  cipherSeconds = CIPHER_INTERVAL;
   updateOLED();
 }
 
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  if (m > 0) return `${m}:${s.toString().padStart(2,'0')}`;
+  return `${s}`;
+}
+
 function updateOLED() {
-  oled.textContent =
+  let text =
 `Translate the access code using the cipher below.
 
 0123456789 → ${cipher.join("")}
 
-Cipher changes in ${secondsRemaining} seconds`;
+Cipher changes in ${cipherSeconds} seconds`;
+
+  // Only show lockout line if user is actually locked out
+  if (lockoutSeconds > 0) {
+    text += `\n\nLOCKED OUT: ${formatTime(lockoutSeconds)}`;
+  }
+
+  oled.textContent = text;
 }
 
 function updateLCD() {
@@ -173,17 +160,19 @@ function updateLCD() {
 generateCipher();
 updateLCD();
 
+// Main intervals
 setInterval(() => {
-  secondsRemaining--;
-  if (secondsRemaining <= 0) {
-    generateCipher();
-  } else {
-    updateOLED();
-  }
+  cipherSeconds--;
+  if (cipherSeconds <= 0) generateCipher();
+
+  if (lockoutSeconds > 0) lockoutSeconds--;
+
+  updateOLED();
 }, 1000);
 
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
+    if (lockoutSeconds > 0) return; // prevent input during lockout
     const k = btn.dataset.key;
 
     if (k === "CLR") {
@@ -194,14 +183,17 @@ document.querySelectorAll(".key").forEach(btn => {
         document.body.innerHTML =
           "<h1 style='color:#0f0;font-family:monospace'>Success</h1>";
         return;
+      } else {
+        input = "";
+        lockoutSeconds = LOCKOUT_DURATION;
       }
-      input = "";
     }
     else if (input.length < MAX_LEN) {
       input += cipher[parseInt(k)];
     }
 
     updateLCD();
+    updateOLED();
   };
 });
 </script>
