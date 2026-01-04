@@ -35,7 +35,7 @@ body {
   pointer-events: none;
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
-  transition: text-shadow 1s ease-in-out;
+  transition: text-shadow 0.5s ease-in-out;
 }
 
 #oled {
@@ -50,7 +50,6 @@ body {
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
-  animation: oledPulse 10s infinite alternate;
 }
 
 #oled div {
@@ -60,10 +59,10 @@ body {
   height: 25%;
 }
 
-#line1 { color: orange; text-shadow: 0 0 0.03125em #f80,0 0 0.0625em #f80; }
-#line2 { color: yellow; text-shadow: 0 0 0.03125em #ff0,0 0 0.0625em #ff0; letter-spacing: 0.05em; }
-#line3 { color: orange; text-shadow: 0 0 0.03125em #f80,0 0 0.0625em #f80; }
-#line4 { color: red; text-shadow: 0 0 0.03125em #f00,0 0 0.0625em #f00; visibility: hidden; }
+#line1 { color: orange; text-shadow: 0 0 0.03em #f80,0 0 0.06em #f80; animation: oledGlow 10s infinite alternate; }
+#line2 { color: yellow; text-shadow: 0 0 0.03em #ff0,0 0 0.06em #ff0; letter-spacing: 0.05em; animation: oledGlow 10s infinite alternate; }
+#line3 { color: orange; text-shadow: 0 0 0.03em #f80,0 0 0.06em #f80; animation: oledGlow 10s infinite alternate; }
+#line4 { color: red; text-shadow: 0 0 0.03em #f00,0 0 0.06em #f00; visibility: hidden; animation: oledGlow 10s infinite alternate; }
 
 #lcd {
   left: 15.25%;
@@ -76,8 +75,8 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0;
-  animation: lcdPulse 10s infinite alternate;
+  text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0;
+  animation: lcdGlow 10s infinite alternate;
 }
 
 .key {
@@ -94,16 +93,16 @@ body {
   height: 100%;
 }
 
-@keyframes oledPulse {
-  0% { text-shadow: 0 0 0.03125em,0 0 0.0625em; }
-  50% { text-shadow: 0 0 0.0625em,0 0 0.125em; }
-  100% { text-shadow: 0 0 0.03125em,0 0 0.0625em; }
+@keyframes oledGlow {
+  0% { text-shadow: 0 0 0.03em,0 0 0.06em; }
+  50% { text-shadow: 0 0 0.06em,0 0 0.12em; }
+  100% { text-shadow: 0 0 0.03em,0 0 0.06em; }
 }
 
-@keyframes lcdPulse {
-  0% { text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0; }
-  50% { text-shadow: 0 0 0.0625em #0f0,0 0 0.1875em #0f0; }
-  100% { text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0; }
+@keyframes lcdGlow {
+  0% { text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0; }
+  50% { text-shadow: 0 0 0.06em #0f0,0 0 0.1875em #0f0; }
+  100% { text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0; }
 }
 </style>
 </head>
