@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keypad</title>
 
-<!-- Include an OLED-like font from Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
@@ -16,8 +15,8 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  overflow: hidden; /* prevent scrolling */
-  user-select: none; /* prevent text selection */
+  overflow: hidden;
+  user-select: none;
 }
 
 #keypad-container {
@@ -35,7 +34,7 @@ body {
   position: absolute;
   pointer-events: none;
   font-family: 'Share Tech Mono', monospace;
-  text-transform: uppercase; /* all text in caps */
+  text-transform: uppercase;
 }
 
 #oled {
@@ -43,12 +42,11 @@ body {
   top: 3.8%;
   width: 72.59%;
   height: 22.18%;
-  padding: 12px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  text-align: center; /* center text */
-  font-size: 0.9em; /* initial font size */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertical center */
+  align-items: center;     /* horizontal center */
+  font-size: 0.9em;
 }
 
 #lcd {
@@ -157,10 +155,9 @@ function fitOLEDText() {
 }
 
 function updateOLED() {
-  // Build HTML for OLED content
   let html =
 `<span style="color:orange;display:block;margin-bottom:5px;">DECRYPT THE ACCESS CODE</span>
-<span style="color:yellow;display:block;letter-spacing:0.5em;margin-bottom:5px;">${cipher.join(" ")}</span>
+<span style="color:yellow;display:block;letter-spacing:0.2em;margin-bottom:5px;">${cipher.join(" ")}</span>
 <span style="color:orange;display:block;margin-bottom:5px;">CIPHER CHANGE IN ${cipherSeconds} SECONDS</span>`;
 
   if (lockoutSeconds > 0) {
