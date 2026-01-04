@@ -43,34 +43,23 @@ body {
   width: 72.59%;
   height: 22.18%;
   display: flex;
-  padding: 10px;
-  box-sizing: border-box;
-  color: orange;
-}
-
-/* OLED columns */
-#oled-left {
-  flex: 0 0 30%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#oled-right {
-  flex: 1;
-  display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-left: 10px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-/* Wheel styling */
-#wheel {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+#oled div {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
+
+/* Colors and glow */
+#line1 { color: orange; text-shadow: 0 0 4px #f80, 0 0 10px #f80; }
+#line2 { color: yellow; text-shadow: 0 0 4px #ff0, 0 0 10px #ff0; letter-spacing: 0.2em; }
+#line3 { color: orange; text-shadow: 0 0 4px #f80, 0 0 10px #f80; }
+#line4 { color: red; text-shadow: 0 0 4px #f00, 0 0 10px #f00; }
 
 #lcd {
   left: 15.25%;
@@ -106,7 +95,6 @@ body {
   50% { text-shadow: 0 0 2px, 0 0 6px; }
   100% { text-shadow: 0 0 1px, 0 0 3px; }
 }
-
 </style>
 </head>
 
@@ -115,17 +103,10 @@ body {
 <div id="keypad-container">
   <img id="keypad-base" src="assets/Keypad__BASE.png">
   <div id="oled">
-    <div id="oled-left">
-      <svg id="wheel" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="45" stroke="orange" stroke-width="8" fill="none" stroke-dasharray="283" stroke-dashoffset="0" />
-        <text id="wheel-text" x="50" y="55" text-anchor="middle" fill="orange" font-size="20" font-family="Share Tech Mono">30</text>
-      </svg>
-    </div>
-    <div id="oled-right">
-      <div id="line1">DECRYPT THE ACCESS CODE</div>
-      <div id="line2"></div>
-      <div id="line3"></div>
-    </div>
+    <div id="line1">DECRYPT THE ACCESS CODE</div>
+    <div id="line2"></div>
+    <div id="line3"></div>
+    <div id="line4"></div>
   </div>
   <div id="lcd"></div>
 
@@ -161,8 +142,7 @@ let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
 const lcd = document.getElementById("lcd");
 const line2 = document.getElementById("line2");
 const line3 = document.getElementById("line3");
-const wheelText = document.getElementById("wheel-text");
-const wheelCircle = document.querySelector("#wheel circle");
+const line4 = document.getElementById("line4");
 
 // Fullscreen
 function requestFullScreen() {
@@ -210,13 +190,9 @@ function formatTime(seconds) {
 
 // Update OLED
 function updateOLED() {
-  line2.textContent = lockoutSeconds > 0 ? `LOCKED OUT: ${formatTime(lockoutSeconds)}` : "";
-  line3.textContent = cipher.join("");
-
-  // Update wheel
-  const percent = cipherSeconds / CIPHER_INTERVAL;
-  wheelCircle.style.strokeDashoffset = 283 * (1 - percent);
-  wheelText.textContent = cipherSeconds;
+  line2.textContent = cipher.join("");
+  line3.textContent = `CIPHER CHANGE IN ${cipherSeconds} SEC`;
+  line4.textContent = lockoutSeconds > 0 ? `LOCKED OUT: ${formatTime(lockoutSeconds)}` : "";
 }
 
 // Update LCD
