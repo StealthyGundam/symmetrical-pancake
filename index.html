@@ -23,25 +23,29 @@ body {
   min-height: 100vh;
 }
 
+/* Container matches base PNG size and scales responsively */
 #keypad-container {
   position: relative;
-  width: 857px;
+  width: 857px;       /* Base width of Keypad__BASE.png */
+  height: 1297px;     /* Base height */
   max-width: 100%;
-  aspect-ratio: 857 / 1297;
+  max-height: 100%;
 }
 
+/* Base image scales to container */
 #keypad-base {
   width: 100%;
+  height: 100%;
   display: block;
 }
 
-/* OLED constrained to PNG */
+/* OLED */
 #oled {
   position: absolute;
-  left: 13.68%;
-  top: 3.8%;
-  width: 72.59%;
-  height: 22.18%;
+  left: 13.68%;   /* 117.23 / 857 */
+  top: 3.8%;      /* 49.355 / 1297 */
+  width: 72.59%;  /* 621.795 / 857 */
+  height: 22.18%; /* 287.882 / 1297 */
 
   display: grid;
   grid-template-rows: repeat(4, 1fr);
@@ -53,7 +57,6 @@ body {
   font-size: 0.65em;
   text-align: center;
   text-transform: uppercase;
-
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -66,10 +69,10 @@ body {
 /* LCD */
 #lcd {
   position: absolute;
-  left: 15.25%;
-  top: 30.2%;
-  width: 69.66%;
-  height: 11.54%;
+  left: 15.25%;     /* 130.949 / 857 */
+  top: 30.2%;       /* 391.72 / 1297 */
+  width: 69.66%;    /* 597.329 / 857 */
+  height: 11.54%;   /* 149.87 / 1297 */
 
   display: flex;
   justify-content: center;
@@ -80,11 +83,11 @@ body {
   color: #00A300;
 
   white-space: nowrap;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.25em;
   padding: 10px;
+  line-height: 1;
 
   text-shadow: 0 0 3px #00A300, 0 0 6px rgba(0,163,0,0.5);
-  line-height: 1; /* ensures all chars align on same horizontal line */
 }
 
 /* Keys */
@@ -118,16 +121,19 @@ body {
   <div id="lcd"></div>
 
   <!-- Buttons -->
-  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
   <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
   <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
+
   <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__4.png"></button>
   <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__5.png"></button>
   <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__6.png"></button>
+
   <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__7.png"></button>
   <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__8.png"></button>
   <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__9.png"></button>
+
+  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
   <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
   <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
 </div>
