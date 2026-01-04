@@ -140,13 +140,12 @@ body {
 const PASSWORD = "1111";
 const MAX_LEN = 4;
 const CIPHER_INTERVAL = 30;
-const lockoutSchedule = [15,30,60,300,3600];
+const FIXED_LOCKOUT = 15;
 
 let inputPlain = localStorage.getItem("inputPlain") || "";
 let cipher = JSON.parse(localStorage.getItem("cipher")) || [];
 let cipherSeconds = parseInt(localStorage.getItem("cipherSeconds")) || CIPHER_INTERVAL;
 let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
-let failedAttempts = parseInt(localStorage.getItem("failedAttempts")) || 0;
 
 const lcd = document.getElementById("lcd");
 const line2 = document.getElementById("line2");
@@ -169,7 +168,6 @@ function saveState(){
   localStorage.setItem("cipher", JSON.stringify(cipher));
   localStorage.setItem("cipherSeconds", cipherSeconds);
   localStorage.setItem("lockoutSeconds", lockoutSeconds);
-  localStorage.setItem("failedAttempts", failedAttempts);
 }
 
 function generateCipher(){
@@ -224,12 +222,6 @@ setInterval(()=>{
   updateLCD();
 },1000);
 
-function getLockoutForAttempt(attempt){
-  if(attempt<=0) return 0;
-  if(attempt>lockoutSchedule.length) return lockoutSchedule[lockoutSchedule.length-1];
-  return lockoutSchedule[attempt-1];
-}
-
 function getCipheredPassword() {
   return PASSWORD.split("").map(d => cipher[parseInt(d)]).join("");
 }
@@ -247,13 +239,11 @@ document.querySelectorAll(".key").forEach(btn=>{
       const enteredCipheredDigits = inputPlain.split("").map(d=>cipher[parseInt(d)]).join("");
       if(enteredCipheredDigits===getCipheredPassword()){
         localStorage.clear();
-        failedAttempts=0;
         document.body.innerHTML="<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
         return;
       } else {
         inputPlain="";
-        failedAttempts++;
-        lockoutSeconds=getLockoutForAttempt(failedAttempts);
+        lockoutSeconds=FIXED_LOCKOUT;
       }
     }
     else if(inputPlain.length<MAX_LEN){
