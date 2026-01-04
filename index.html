@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keypad</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
 <style>
-body {
+html, body {
   margin: 0;
   background: #000;
+  overflow: hidden;
+  user-select: none;
+}
+
+body {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  overflow: hidden;
-  user-select: none;
 }
 
 #keypad-container {
@@ -32,11 +33,11 @@ body {
 
 #oled, #lcd {
   position: absolute;
+  font-family: "Courier New", monospace;
   pointer-events: none;
-  font-family: 'Share Tech Mono', monospace;
-  text-transform: uppercase;
 }
 
+/* OLED */
 #oled {
   left: 13.68%;
   top: 3.8%;
@@ -46,33 +47,44 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  box-sizing: border-box;
   text-align: center;
+  font-size: 0.9em;
 }
 
-#oled div {
-  height: 25%;
-  white-space: nowrap;
+.oled-line {
+  width: 100%;
+  animation: oledGlow 10s infinite alternate;
 }
 
-#line1 { color: orange; text-shadow: 0 0 0.03em #f80; }
-#line2 { color: yellow; letter-spacing: 0.08em; text-shadow: 0 0 0.03em #ff0; }
-#line3 { color: orange; text-shadow: 0 0 0.03em #f80; }
-#line4 { color: red; visibility: hidden; text-shadow: 0 0 0.03em #f00; }
+#line1 { color: orange; }
+#line2 { color: yellow; letter-spacing: 0.15em; }
+#line3 { color: orange; }
+#line4 { color: red; }
 
+@keyframes oledGlow {
+  0% { text-shadow: 0 0 0.15em currentColor; }
+  100% { text-shadow: 0 0 0.3em currentColor; }
+}
+
+/* LCD */
 #lcd {
   left: 15.25%;
   top: 30.2%;
   width: 69.66%;
   height: 11.54%;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  color: #0f0;
   font-size: 1.6em;
   letter-spacing: 0.3em;
-  color: #0f0;
-  text-shadow: 0 0 0.05em #0f0;
+  text-shadow: 0 0 0.25em #0f0;
+  animation: lcdGlow 10s infinite alternate;
+}
+
+@keyframes lcdGlow {
+  from { text-shadow: 0 0 0.2em #0f0; }
+  to { text-shadow: 0 0 0.4em #0f0; }
 }
 
 .key {
@@ -82,7 +94,11 @@ body {
   padding: 0;
   cursor: pointer;
 }
-.key img { width: 100%; height: 100%; }
+
+.key img {
+  width: 100%;
+  height: 100%;
+}
 </style>
 </head>
 
@@ -92,10 +108,10 @@ body {
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
   <div id="oled">
-    <div id="line1">DECRYPT THE ACCESS CODE</div>
-    <div id="line2"></div>
-    <div id="line3"></div>
-    <div id="line4"></div>
+    <div id="line1" class="oled-line"></div>
+    <div id="line2" class="oled-line"></div>
+    <div id="line3" class="oled-line"></div>
+    <div id="line4" class="oled-line"></div>
   </div>
 
   <div id="lcd"></div>
@@ -119,75 +135,62 @@ body {
 </div>
 
 <script>
-const PASSWORD = "1111";
-const MAX_LEN = 4;
-const CIPHER_INTERVAL = 30;
-const LOCKOUT_DURATION = 15;
+const PASSWORD = "111111";
+const MAX_LEN = 6;
+const LOCKOUT_TIME = 15;
 
 let inputKeys = "";
-let lockoutSeconds = 0;
-let cipherSeconds = CIPHER_INTERVAL;
 let cipher = [];
+let lockout = 0;
 
 const lcd = document.getElementById("lcd");
-const line2 = document.getElementById("line2");
-const line3 = document.getElementById("line3");
-const line4 = document.getElementById("line4");
+const l1 = document.getElementById("line1");
+const l2 = document.getElementById("line2");
+const l3 = document.getElementById("line3");
+const l4 = document.getElementById("line4");
 
 function generateCipher() {
-  const digits = "0123456789".split("");
-  for (let i = digits.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [digits[i], digits[j]] = [digits[j], digits[i]];
-  }
-  cipher = digits;
-  cipherSeconds = CIPHER_INTERVAL;
+  cipher = [..."0123456789"].sort(() => Math.random() - 0.5);
 }
 
 function updateOLED() {
-  line2.textContent = cipher.join("");
-  line3.textContent = `CIPHER CHANGE IN ${cipherSeconds} SEC`;
-  line4.style.visibility = lockoutSeconds > 0 ? "visible" : "hidden";
-  if (lockoutSeconds > 0) {
-    line4.textContent = `LOCKED OUT: ${lockoutSeconds} SEC`;
-  }
+  l1.textContent = "DECRYPT THE ACCESS CODE";
+  l2.textContent = cipher.join("");
+  l3.textContent = "ENTER CIPHERED CODE";
+  l4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
 }
 
 function updateLCD() {
-  lcd.textContent = inputKeys.split("").join(" ");
+  let display = "";
+  for (let i = 0; i < MAX_LEN; i++) {
+    display += i < inputKeys.length ? "*" : "-";
+  }
+  lcd.textContent = display.split("").join(" ");
 }
 
-function getMappedInput() {
-  return inputKeys.split("").map(k => cipher[parseInt(k)]).join("");
+function invertCipher(input) {
+  return input.split("").map(d => cipher.indexOf(d).toString()).join("");
 }
-
-if (!cipher.length) generateCipher();
-updateOLED();
-updateLCD();
 
 setInterval(() => {
-  cipherSeconds--;
-  if (cipherSeconds <= 0) generateCipher();
-  if (lockoutSeconds > 0) lockoutSeconds--;
+  if (lockout > 0) lockout--;
   updateOLED();
 }, 1000);
 
-document.querySelectorAll(".key").forEach(btn => {
-  btn.onclick = () => {
-    if (lockoutSeconds > 0) return;
-
-    const k = btn.dataset.key;
+document.querySelectorAll(".key").forEach(b => {
+  b.onclick = () => {
+    if (lockout > 0) return;
+    const k = b.dataset.key;
 
     if (k === "CLR") {
       inputKeys = "";
     } else if (k === "ENT") {
-      if (getMappedInput() === PASSWORD) {
+      if (invertCipher(inputKeys) === PASSWORD) {
         document.body.innerHTML =
           "<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
-        return;
       } else {
         inputKeys = "";
-        lockoutSeconds = LOCKOUT_DURATION;
+        lockout = LOCKOUT_TIME;
       }
     } else if (inputKeys.length < MAX_LEN) {
       inputKeys += k;
@@ -197,6 +200,18 @@ document.querySelectorAll(".key").forEach(btn => {
     updateOLED();
   };
 });
+
+// Init
+generateCipher();
+updateOLED();
+updateLCD();
+
+// Disable right-click & scrolling
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("wheel", e => e.preventDefault(), { passive:false });
+
+// Fullscreen attempt
+document.documentElement.requestFullscreen?.().catch(()=>{});
 </script>
 
 </body>
