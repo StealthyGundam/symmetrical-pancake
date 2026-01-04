@@ -82,16 +82,16 @@ body {
 
   font-family: 'Orbitron', monospace;
   font-size: 1.3em;
-  color: #0f0;
+  color: #00ff55; /* match LCD.png green */
 
   white-space: nowrap;
   flex-wrap: nowrap;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.2em; /* slightly more spacing */
   padding: 10px;
 
   text-shadow:
-    0 0 1px rgba(0,255,0,0.4),
-    0 0 3px rgba(0,255,0,0.25);
+    0 0 1px rgba(0,255,85,0.4),
+    0 0 3px rgba(0,255,85,0.25);
 }
 
 /* Keys */
@@ -221,7 +221,7 @@ document.querySelectorAll(".key").forEach(btn => {
         lockout = LOCKOUT_DURATION;
       }
     } else if (input.length < MAX_LEN) {
-      input += k; // show actual key pressed on LCD
+      input += k;
     }
 
     updateLCD();
