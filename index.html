@@ -18,7 +18,7 @@ body {
 #keypad-container {
   position: relative;
   width: 90%;
-  max-width: 857.332px; /* base width */
+  max-width: 857.332px;
 }
 
 #keypad-base {
@@ -125,7 +125,6 @@ const success = document.getElementById("success-screen");
 document.querySelectorAll(".key").forEach(btn => {
   btn.addEventListener("click", () => {
     const key = btn.dataset.key;
-
     if (key === "CLR") inputBuffer = "";
     else if (key === "ENT") {
       if (inputBuffer === PASSWORD) {
