@@ -26,15 +26,241 @@ body {
 #keypad-container {
   position: relative;
   width: 90%;
-  max-width: 857px;
+  max-width: 857.332px; /* original base width */
 }
 
 #keypad-base {
   width: 100%;
   display: block;
+  height: auto;
 }
 
-/* OLED and LCD overlays */
+/* OLED */
+#oled {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 14px; /* will scale */
+  color: #ffa500;
+  text-align: center;
+  overflow: hidden;
+  text-shadow: 0 0 3px #ffa500, 0 0 6px rgba(255,165,0,0.5);
+}
+
+/* OLED line colors */
+.oled-line-1 { color: orange; }
+.oled-line-2 { color: orange; }
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; }
+.oled-line-4 { color: red; }
+
+/* LCD */
+#lcd {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3em;
+  color: #00A300;
+  text-shadow: 0 0 3px #00A300, 0 0 6px rgba(0,163,0,0.5);
+  letter-spacing: 0.2em;
+  padding: 10px;
+  white-space: nowrap;
+}
+
+/* Keys */
+.key {
+  position: absolute;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.key img {
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+<div id="keypad-container">
+  <img id="keypad-base" src="assets/Keypad__BASE.png">
+
+  <div id="oled">
+    <div id="oled1" class="oled-line-1"></div>
+    <div id="oled2" class="oled-line-2"></div>
+    <div id="oled3" class="oled-line-3"></div>
+    <div id="oled4" class="oled-line-4"></div>
+  </div>
+
+  <div id="lcd"></div>
+
+  <!-- Buttons -->
+  <button class="key" data-key="1"><img src="assets/Keypad__1.png"></button>
+  <button class="key" data-key="2"><img src="assets/Keypad__2.png"></button>
+  <button class="key" data-key="3"><img src="assets/Keypad__3.png"></button>
+  <button class="key" data-key="4"><img src="assets/Keypad__4.png"></button>
+  <button class="key" data-key="5"><img src="assets/Keypad__5.png"></button>
+  <button class="key" data-key="6"><img src="assets/Keypad__6.png"></button>
+  <button class="key" data-key="7"><img src="assets/Keypad__7.png"></button>
+  <button class="key" data-key="8"><img src="assets/Keypad__8.png"></button>
+  <button class="key" data-key="9"><img src="assets/Keypad__9.png"></button>
+  <button class="key" data-key="0"><img src="assets/Keypad__0.png"></button>
+  <button class="key" data-key="CLR"><img src="assets/Keypad__CLR.png"></button>
+  <button class="key" data-key="ENT"><img src="assets/Keypad__ENT.png"></button>
+</div>
+
+<script>
+const BASE_WIDTH = 857.332;
+const BASE_HEIGHT = 1297.897;
+
+// Original button coordinates
+const BUTTONS = [
+  {key:"1", x:132.121, y:590.836, w:177.33, h:94.529},
+  {key:"2", x:340.001, y:590.836, w:177.33, h:94.529},
+  {key:"3", x:545.009, y:590.836, w:177.33, h:94.529},
+  {key:"4", x:132.121, y:705.750, w:177.33, h:94.529},
+  {key:"5", x:340.001, y:705.750, w:177.33, h:94.529},
+  {key:"6", x:545.009, y:705.750, w:177.33, h:94.529},
+  {key:"7", x:132.121, y:820.664, w:177.33, h:94.529},
+  {key:"8", x:340.001, y:820.664, w:177.33, h:94.529},
+  {key:"9", x:545.009, y:820.664, w:177.33, h:94.529},
+  {key:"CLR", x:132.121, y:937.469, w:177.33, h:94.529},
+  {key:"0", x:340.001, y:937.469, w:177.33, h:94.529},
+  {key:"ENT", x:545.009, y:937.469, w:177.33, h:94.529}
+];
+
+// OLED and LCD positions
+const OLED_POS = {x:117.230, y:49.355, w:621.795, h:287.882};
+const LCD_POS = {x:130.949, y:391.720, w:597.329, h:149.870};
+
+// Password & input
+const PASSWORD = "111111";
+const MAX_LEN = 6;
+const LOCKOUT_DURATION = 15;
+
+let input = "";
+let lockout = 0;
+let cipher = [];
+let cipherCountdown = 30;
+
+const lcd = document.getElementById("lcd");
+const oled = document.getElementById("oled");
+const o1 = document.getElementById("oled1");
+const o2 = document.getElementById("oled2");
+const o3 = document.getElementById("oled3");
+const o4 = document.getElementById("oled4");
+
+/* Disable right click */
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+/* Fullscreen attempt */
+document.body.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}, { once:true });
+
+/* Scale elements based on container width */
+function scaleElements() {
+  const container = document.getElementById("keypad-container");
+  const cw = container.clientWidth;
+  const ch = cw * (BASE_HEIGHT/BASE_WIDTH);
+
+  container.style.height = ch + "px";
+
+  // Buttons
+  document.querySelectorAll(".key").forEach((btn, i) => {
+    const b = BUTTONS[i];
+    btn.style.left = (b.x/BASE_WIDTH*cw) + "px";
+    btn.style.top = (b.y/BASE_HEIGHT*ch) + "px";
+    btn.style.width = (b.w/BASE_WIDTH*cw) + "px";
+    btn.style.height = (b.h/BASE_HEIGHT*ch) + "px";
+  });
+
+  // OLED
+  oled.style.left = (OLED_POS.x/BASE_WIDTH*cw) + "px";
+  oled.style.top = (OLED_POS.y/BASE_HEIGHT*ch) + "px";
+  oled.style.width = (OLED_POS.w/BASE_WIDTH*cw) + "px";
+  oled.style.height = (OLED_POS.h/BASE_HEIGHT*ch) + "px";
+  oled.style.fontSize = (OLED_POS.h/BASE_HEIGHT*ch*0.18) + "px";
+
+  // LCD
+  lcd.style.left = (LCD_POS.x/BASE_WIDTH*cw) + "px";
+  lcd.style.top = (LCD_POS.y/BASE_HEIGHT*ch) + "px";
+  lcd.style.width = (LCD_POS.w/BASE_WIDTH*cw) + "px";
+  lcd.style.height = (LCD_POS.h/BASE_HEIGHT*ch) + "px";
+  lcd.style.fontSize = (LCD_POS.h/BASE_HEIGHT*ch*0.6) + "px";
+}
+
+/* Cipher */
+function generateCipher() {
+  cipher = [..."0123456789"];
+  for (let i=cipher.length-1; i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [cipher[i], cipher[j]] = [cipher[j], cipher[i]];
+  }
+  cipherCountdown = 30;
+}
+
+function updateOLED() {
+  o1.textContent = "DECRYPT YOUR ACCESS CODE";
+  o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
+  o3.textContent = cipher.join("");
+  o4.textContent = lockout>0 ? `LOCKED OUT: ${lockout} SEC` : "";
+}
+
+function updateLCD() {
+  let out=[];
+  for(let i=0;i<MAX_LEN;i++){
+    out.push(i<input.length?"*":"-");
+  }
+  lcd.textContent = out.join(" ");
+}
+
+/* Key presses */
+document.querySelectorAll(".key").forEach(btn=>{
+  btn.onclick=()=>{
+    if(lockout>0) return;
+    const k = btn.dataset.key;
+    if(k==="CLR") input="";
+    else if(k==="ENT"){
+      // Check ciphered input
+      let cipheredInput = input.split("").map(d=>cipher[parseInt(d)]).join("");
+      if(cipheredInput===PASSWORD){
+        document.body.innerHTML="<h1 style='color:#00A300;font-family:Orbitron'>ACCESS GRANTED</h1>";
+        return;
+      }else{
+        input="";
+        lockout = LOCKOUT_DURATION;
+      }
+    }else if(input.length<MAX_LEN){
+      input += k;
+    }
+    updateLCD();
+    updateOLED();
+  };
+});
+
+/* Main interval */
+setInterval(()=>{
+  if(lockout>0) lockout--;
+  cipherCountdown--;
+  if(cipherCountdown<=0) generateCipher();
+  updateOLED();
+},1000);
+
+window.addEventListener("resize", scaleElements);
+window.addEventListener("load", scaleElements);
+</script>
+</body>
+</html>/* OLED and LCD overlays */
 .overlay {
   position: absolute;
   display: flex;
