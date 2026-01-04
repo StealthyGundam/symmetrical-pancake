@@ -59,10 +59,10 @@ body {
 }
 
 /* Colors and glow */
-#line1 { color: orange; text-shadow: 0 0 2px #f80, 0 0 5px #f80; }
-#line2 { color: yellow; text-shadow: 0 0 2px #ff0, 0 0 5px #ff0; letter-spacing: 0.1em; }
-#line3 { color: orange; text-shadow: 0 0 2px #f80, 0 0 5px #f80; }
-#line4 { color: red; text-shadow: 0 0 2px #f00, 0 0 5px #f00; visibility: hidden; }
+#line1 { color: orange; text-shadow: 0 0 1px #f80, 0 0 2.5px #f80; }
+#line2 { color: yellow; text-shadow: 0 0 1px #ff0, 0 0 2.5px #ff0; letter-spacing: 0.1em; }
+#line3 { color: orange; text-shadow: 0 0 1px #f80, 0 0 2.5px #f80; }
+#line4 { color: red; text-shadow: 0 0 1px #f00, 0 0 2.5px #f00; visibility: hidden; }
 
 #lcd {
   left: 15.25%;
@@ -75,7 +75,7 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 1px #0f0, 0 0 3px #0f0;
+  text-shadow: 0 0 0.5px #0f0, 0 0 1.5px #0f0;
   animation: pulse 10s infinite alternate;
 }
 
@@ -94,9 +94,9 @@ body {
 }
 
 @keyframes pulse {
-  0% { text-shadow: 0 0 1px, 0 0 3px; }
-  50% { text-shadow: 0 0 2px, 0 0 6px; }
-  100% { text-shadow: 0 0 1px, 0 0 3px; }
+  0% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
+  50% { text-shadow: 0 0 1px, 0 0 3px; }
+  100% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
 }
 </style>
 </head>
@@ -147,14 +147,18 @@ const line2 = document.getElementById("line2");
 const line3 = document.getElementById("line3");
 const line4 = document.getElementById("line4");
 
-// Fullscreen
+// Fullscreen request on first interaction
 function requestFullScreen() {
   const el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen();
   else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
   else if (el.msRequestFullscreen) el.msRequestFullscreen();
 }
-window.addEventListener('load', requestFullScreen);
+
+// Trigger fullscreen on first tap/click
+document.body.addEventListener('click', function initFullScreen() {
+  requestFullScreen();
+}, { once: true });
 
 // Disable right-click/scroll
 document.addEventListener("contextmenu", e => e.preventDefault());
@@ -191,7 +195,6 @@ function formatTime(seconds) {
   return parts.join(" ");
 }
 
-// Update OLED
 function updateOLED() {
   line2.textContent = cipher.join("");
   line3.textContent = `CIPHER CHANGE IN ${cipherSeconds} SEC`;
@@ -204,7 +207,6 @@ function updateOLED() {
   }
 }
 
-// Update LCD
 function updateLCD() {
   const display = [];
   for (let i = 0; i < MAX_LEN; i++) {
