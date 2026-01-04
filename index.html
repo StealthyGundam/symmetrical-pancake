@@ -44,14 +44,16 @@ body {
   height: 22.18%;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* vertical center */
-  align-items: center;     /* horizontal center */
+  justify-content: space-between; /* keep 4-line spacing consistent */
+  align-items: center;
   font-size: 0.9em;
   text-align: center;
+  line-height: 1.2em;
 }
 
 #oled span {
   display: block;
+  width: 100%;
 }
 
 #lcd {
@@ -65,10 +67,7 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow:
-    0 0 4px #0f0,
-    0 0 8px #0f0,
-    0 0 12px #0f0;
+  text-shadow: 0 0 2px #0f0, 0 0 4px #0f0; /* 50% reduced glow */
 }
 
 .key {
@@ -85,11 +84,11 @@ body {
   height: 100%;
 }
 
-/* OLED glow colors */
-#oled span:nth-child(1) { color: orange; text-shadow: 0 0 4px orange, 0 0 10px orange; }
-#oled span:nth-child(2) { color: yellow; text-shadow: 0 0 4px yellow, 0 0 10px yellow; letter-spacing: 0.2em; }
-#oled span:nth-child(3) { color: orange; text-shadow: 0 0 4px orange, 0 0 10px orange; }
-#oled span:nth-child(4) { color: red; text-shadow: 0 0 4px red, 0 0 10px red; }
+/* OLED glow colors reduced */
+#oled span:nth-child(1) { color: orange; text-shadow: 0 0 2px orange, 0 0 5px orange; }
+#oled span:nth-child(2) { color: yellow; text-shadow: 0 0 2px yellow, 0 0 5px yellow; letter-spacing: 0.2em; }
+#oled span:nth-child(3) { color: orange; text-shadow: 0 0 2px orange, 0 0 5px orange; }
+#oled span:nth-child(4) { color: red; text-shadow: 0 0 2px red, 0 0 5px red; }
 
 </style>
 </head>
@@ -181,6 +180,7 @@ function fitOLEDText() {
 
 function updateOLED() {
   const lockoutText = lockoutSeconds > 0 ? `LOCKED OUT: ${formatTime(lockoutSeconds)}` : "";
+  // Always 4 lines
   const html =
 `<span>DECRYPT THE ACCESS CODE</span>
 <span>${cipher.join("")}</span>
