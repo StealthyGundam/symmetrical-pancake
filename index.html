@@ -35,6 +35,7 @@ body {
   pointer-events: none;
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
+  transition: text-shadow 1s ease-in-out;
 }
 
 #oled {
@@ -49,6 +50,7 @@ body {
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
+  animation: oledPulse 10s infinite alternate;
 }
 
 #oled div {
@@ -58,10 +60,10 @@ body {
   height: 25%;
 }
 
-#line1 { color: orange; text-shadow: 0 0 0.0625px #f80,0 0 0.15625px #f80; }
-#line2 { color: yellow; text-shadow: 0 0 0.0625px #ff0,0 0 0.15625px #ff0; letter-spacing: 0.05em; }
-#line3 { color: orange; text-shadow: 0 0 0.0625px #f80,0 0 0.15625px #f80; }
-#line4 { color: red; text-shadow: 0 0 0.0625px #f00,0 0 0.15625px #f00; visibility: hidden; }
+#line1 { color: orange; text-shadow: 0 0 0.03125em #f80,0 0 0.0625em #f80; }
+#line2 { color: yellow; text-shadow: 0 0 0.03125em #ff0,0 0 0.0625em #ff0; letter-spacing: 0.05em; }
+#line3 { color: orange; text-shadow: 0 0 0.03125em #f80,0 0 0.0625em #f80; }
+#line4 { color: red; text-shadow: 0 0 0.03125em #f00,0 0 0.0625em #f00; visibility: hidden; }
 
 #lcd {
   left: 15.25%;
@@ -74,8 +76,8 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 0.03125px #0f0,0 0 0.09375px #0f0;
-  animation: pulse 10s infinite alternate;
+  text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0;
+  animation: lcdPulse 10s infinite alternate;
 }
 
 .key {
@@ -92,10 +94,16 @@ body {
   height: 100%;
 }
 
-@keyframes pulse {
-  0% { text-shadow: 0 0 0.03125px,0 0 0.09375px; }
-  50% { text-shadow: 0 0 0.0625px,0 0 0.1875px; }
-  100% { text-shadow: 0 0 0.03125px,0 0 0.09375px; }
+@keyframes oledPulse {
+  0% { text-shadow: 0 0 0.03125em,0 0 0.0625em; }
+  50% { text-shadow: 0 0 0.0625em,0 0 0.125em; }
+  100% { text-shadow: 0 0 0.03125em,0 0 0.0625em; }
+}
+
+@keyframes lcdPulse {
+  0% { text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0; }
+  50% { text-shadow: 0 0 0.0625em #0f0,0 0 0.1875em #0f0; }
+  100% { text-shadow: 0 0 0.03125em #0f0,0 0 0.09375em #0f0; }
 }
 </style>
 </head>
@@ -131,7 +139,7 @@ body {
 
 <script>
 const PASSWORD = "1111";
-const MAX_LEN = 6;
+const MAX_LEN = 4;
 const CIPHER_INTERVAL = 30;
 const lockoutSchedule = [15,30,60,300,3600];
 
@@ -146,7 +154,6 @@ const line2 = document.getElementById("line2");
 const line3 = document.getElementById("line3");
 const line4 = document.getElementById("line4");
 
-// Fullscreen
 function requestFullScreen() {
   const el=document.documentElement;
   if(el.requestFullscreen) el.requestFullscreen();
@@ -190,7 +197,7 @@ function formatTime(seconds){
 }
 
 function updateOLED(){
-  line2.textContent=cipher.join("");
+  line2.textContent=inputPlain ? inputPlain.split("").map(d=>cipher[parseInt(d)]).join("") : "";
   line3.textContent=`CIPHER CHANGE IN ${cipherSeconds} SEC`;
 
   if(lockoutSeconds>0){
@@ -202,15 +209,7 @@ function updateOLED(){
 }
 
 function updateLCD(){
-  const display=[];
-  for(let i=0;i<MAX_LEN;i++){
-    if(i<inputPlain.length){
-      display.push(cipher[parseInt(inputPlain[i])]);
-    } else {
-      display.push("-");
-    }
-  }
-  lcd.textContent=display.join(" ");
+  lcd.textContent=inputPlain.split("").map(d=>cipher[parseInt(d)]).join("").split("").join(" ");
 }
 
 if(!cipher.length) generateCipher();
@@ -246,9 +245,8 @@ document.querySelectorAll(".key").forEach(btn=>{
       inputPlain="";
     }
     else if(k==="ENT"){
-      const enteredCipher = inputPlain.split("").map(d => cipher[parseInt(d)]).join("");
-      const correctCipher = getCipheredPassword();
-      if(enteredCipher === correctCipher){
+      const enteredCipheredDigits = inputPlain.split("").map(d=>cipher[parseInt(d)]).join("");
+      if(enteredCipheredDigits===getCipheredPassword()){
         localStorage.clear();
         failedAttempts=0;
         document.body.innerHTML="<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
@@ -256,7 +254,7 @@ document.querySelectorAll(".key").forEach(btn=>{
       } else {
         inputPlain="";
         failedAttempts++;
-        lockoutSeconds = getLockoutForAttempt(failedAttempts);
+        lockoutSeconds=getLockoutForAttempt(failedAttempts);
       }
     }
     else if(inputPlain.length<MAX_LEN){
