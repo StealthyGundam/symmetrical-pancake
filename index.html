@@ -59,10 +59,10 @@ body {
 }
 
 /* Colors and glow */
-#line1 { color: orange; text-shadow: 0 0 1px #f80, 0 0 2.5px #f80; }
-#line2 { color: yellow; text-shadow: 0 0 1px #ff0, 0 0 2.5px #ff0; letter-spacing: 0.1em; }
-#line3 { color: orange; text-shadow: 0 0 1px #f80, 0 0 2.5px #f80; }
-#line4 { color: red; text-shadow: 0 0 1px #f00, 0 0 2.5px #f00; visibility: hidden; }
+#line1 { color: orange; text-shadow: 0 0 0.5px #f80, 0 0 1.25px #f80; }
+#line2 { color: yellow; text-shadow: 0 0 0.5px #ff0, 0 0 1.25px #ff0; letter-spacing: 0.1em; }
+#line3 { color: orange; text-shadow: 0 0 0.5px #f80, 0 0 1.25px #f80; }
+#line4 { color: red; text-shadow: 0 0 0.5px #f00, 0 0 1.25px #f00; visibility: hidden; }
 
 #lcd {
   left: 15.25%;
@@ -75,7 +75,7 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 0.5px #0f0, 0 0 1.5px #0f0;
+  text-shadow: 0 0 0.25px #0f0, 0 0 0.75px #0f0;
   animation: pulse 10s infinite alternate;
 }
 
@@ -94,9 +94,9 @@ body {
 }
 
 @keyframes pulse {
-  0% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
-  50% { text-shadow: 0 0 1px, 0 0 3px; }
-  100% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
+  0% { text-shadow: 0 0 0.25px, 0 0 0.75px; }
+  50% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
+  100% { text-shadow: 0 0 0.25px, 0 0 0.75px; }
 }
 </style>
 </head>
@@ -137,7 +137,8 @@ const MAX_LEN = 6;
 const CIPHER_INTERVAL = 30;
 const LOCKOUT_DURATION = 15;
 
-let input = localStorage.getItem("input") || "";
+let inputDisplay = localStorage.getItem("inputDisplay") || "";
+let inputPlain = localStorage.getItem("inputPlain") || "";
 let cipher = JSON.parse(localStorage.getItem("cipher")) || [];
 let cipherSeconds = parseInt(localStorage.getItem("cipherSeconds")) || CIPHER_INTERVAL;
 let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
@@ -166,7 +167,8 @@ document.addEventListener("wheel", e => e.preventDefault(), { passive: false });
 document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
 
 function saveState() {
-  localStorage.setItem("input", input);
+  localStorage.setItem("inputDisplay", inputDisplay);
+  localStorage.setItem("inputPlain", inputPlain);
   localStorage.setItem("cipher", JSON.stringify(cipher));
   localStorage.setItem("cipherSeconds", cipherSeconds);
   localStorage.setItem("lockoutSeconds", lockoutSeconds);
@@ -210,7 +212,7 @@ function updateOLED() {
 function updateLCD() {
   const display = [];
   for (let i = 0; i < MAX_LEN; i++) {
-    display.push(i < input.length ? "*" : "-");
+    display.push(i < inputPlain.length ? "*" : "-");
   }
   lcd.textContent = display.join(" ");
 }
@@ -234,18 +236,24 @@ document.querySelectorAll(".key").forEach(btn=>{
 
     const k = btn.dataset.key;
 
-    if(k==="CLR") input="";
+    if(k==="CLR"){
+      inputDisplay="";
+      inputPlain="";
+    }
     else if(k==="ENT"){
-      if(input===PASSWORD){
+      if(inputPlain === PASSWORD){
         localStorage.clear();
         document.body.innerHTML="<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
         return;
       }else{
-        input="";
+        inputDisplay="";
+        inputPlain="";
         lockoutSeconds = LOCKOUT_DURATION;
       }
-    }else if(input.length<MAX_LEN){
-      input+=cipher[parseInt(k)];
+    }
+    else if(inputPlain.length<MAX_LEN){
+      inputPlain += k;              // store plain number
+      inputDisplay += cipher[parseInt(k)]; // store ciphered for display
     }
 
     saveState();
