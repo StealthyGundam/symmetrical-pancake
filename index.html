@@ -39,7 +39,9 @@ body {
   width: 72.59%;
   height: 22.18%;
   padding: 12px;
+  white-space: pre-wrap;
   text-align: left;
+  font-size: 0.9em;
 }
 
 #lcd {
@@ -60,6 +62,7 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .key img {
@@ -75,7 +78,7 @@ body {
 
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
-  <div id="oled">ENTER CODE</div>
+  <div id="oled"></div>
   <div id="lcd"></div>
 
   <!-- ROW 1 -->
@@ -127,17 +130,54 @@ body {
 <script>
 const PASSWORD = "1111";
 const MAX_LEN = 6;
+const CIPHER_INTERVAL = 30;
 
 let input = "";
-const lcd = document.getElementById("lcd");
+let cipher = [];
+let secondsRemaining = CIPHER_INTERVAL;
 
-function updateLCD() {
-  const chars = input.split("");
-  while (chars.length < MAX_LEN) chars.push("-");
-  lcd.textContent = chars.join(" ");
+const lcd = document.getElementById("lcd");
+const oled = document.getElementById("oled");
+
+function generateCipher() {
+  const digits = "0123456789".split("");
+  for (let i = digits.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [digits[i], digits[j]] = [digits[j], digits[i]];
+  }
+  cipher = digits;
+  secondsRemaining = CIPHER_INTERVAL;
+  updateOLED();
 }
 
+function updateOLED() {
+  oled.textContent =
+`Translate the access code using the cipher below.
+
+0123456789 → ${cipher.join("")}
+
+Cipher changes in ${secondsRemaining} seconds`;
+}
+
+function updateLCD() {
+  const display = [];
+  for (let i = 0; i < MAX_LEN; i++) {
+    display.push(i < input.length ? "●" : "-");
+  }
+  lcd.textContent = display.join(" ");
+}
+
+generateCipher();
 updateLCD();
+
+setInterval(() => {
+  secondsRemaining--;
+  if (secondsRemaining <= 0) {
+    generateCipher();
+  } else {
+    updateOLED();
+  }
+}, 1000);
 
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
@@ -155,7 +195,7 @@ document.querySelectorAll(".key").forEach(btn => {
       input = "";
     }
     else if (input.length < MAX_LEN) {
-      input += k;
+      input += cipher[parseInt(k)];
     }
 
     updateLCD();
