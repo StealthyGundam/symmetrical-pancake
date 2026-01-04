@@ -23,29 +23,31 @@ body {
   min-height: 100vh;
 }
 
-/* Container matches base PNG size and scales responsively */
+/* Container maintains aspect ratio of the base PNG */
 #keypad-container {
   position: relative;
-  width: 857px;       /* Base width of Keypad__BASE.png */
-  height: 1297px;     /* Base height */
-  max-width: 100%;
-  max-height: 100%;
+  width: 90%;               /* scale to screen width */
+  max-width: 857px;         /* optional max width */
+  padding-top: 151.42%;     /* 1297 / 857 * 100% to maintain ratio */
 }
 
-/* Base image scales to container */
+/* Base PNG fills container without stretching */
 #keypad-base {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  object-fit: contain;
 }
 
 /* OLED */
 #oled {
   position: absolute;
-  left: 13.68%;   /* 117.23 / 857 */
-  top: 3.8%;      /* 49.355 / 1297 */
-  width: 72.59%;  /* 621.795 / 857 */
-  height: 22.18%; /* 287.882 / 1297 */
+  left: 13.68%;
+  top: 3.8%;
+  width: 72.59%;
+  height: 22.18%;
 
   display: grid;
   grid-template-rows: repeat(4, 1fr);
@@ -69,10 +71,10 @@ body {
 /* LCD */
 #lcd {
   position: absolute;
-  left: 15.25%;     /* 130.949 / 857 */
-  top: 30.2%;       /* 391.72 / 1297 */
-  width: 69.66%;    /* 597.329 / 857 */
-  height: 11.54%;   /* 149.87 / 1297 */
+  left: 15.25%;
+  top: 30.2%;
+  width: 69.66%;
+  height: 11.54%;
 
   display: flex;
   justify-content: center;
