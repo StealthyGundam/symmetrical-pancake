@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keypad</title>
 
+<!-- Include an OLED-like font from Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
 <style>
 body {
   margin: 0;
@@ -30,9 +33,9 @@ body {
 
 #oled, #lcd {
   position: absolute;
-  color: #0f0;
-  font-family: monospace;
   pointer-events: none;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase; /* all text in caps */
 }
 
 #oled {
@@ -44,9 +47,8 @@ body {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  text-align: left;
+  text-align: center; /* center text */
   font-size: 0.9em; /* initial font size */
-  text-transform: uppercase; /* FORCE ALL CAPS */
 }
 
 #lcd {
@@ -59,6 +61,7 @@ body {
   justify-content: center;
   font-size: 1.6em;
   letter-spacing: 0.3em;
+  color: #0f0;
 }
 
 .key {
@@ -154,18 +157,17 @@ function fitOLEDText() {
 }
 
 function updateOLED() {
-  let text =
-`DECRYPT THE ACCESS CODE USING THE CIPHER.
-
-${cipher.join("")}
-
-CIPHER CHANGE IN ${cipherSeconds} SECONDS`;
+  // Build HTML for OLED content
+  let html =
+`<span style="color:orange;display:block;margin-bottom:5px;">DECRYPT THE ACCESS CODE</span>
+<span style="color:yellow;display:block;letter-spacing:0.5em;margin-bottom:5px;">${cipher.join(" ")}</span>
+<span style="color:orange;display:block;margin-bottom:5px;">CIPHER CHANGE IN ${cipherSeconds} SECONDS</span>`;
 
   if (lockoutSeconds > 0) {
-    text += `\n\nLOCKED OUT: ${formatTime(lockoutSeconds)}`;
+    html += `<span style="color:red;display:block;margin-top:5px;">LOCKED OUT: ${formatTime(lockoutSeconds)}</span>`;
   }
 
-  oled.textContent = text;
+  oled.innerHTML = html;
   fitOLEDText();
 }
 
