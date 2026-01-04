@@ -10,7 +10,7 @@
 <style>
 body {
   margin: 0;
-  background: #000; /* true black */
+  background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -45,24 +45,23 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: center;       /* center horizontally */
+  align-items: center;
   padding: 10px;
   box-sizing: border-box;
-  text-align: center;        /* center text inside lines */
+  text-align: center;
 }
 
 #oled div {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  height: 25%; /* each line takes 1/4 of OLED height */
+  height: 25%;
 }
 
-/* Colors and glow */
-#line1 { color: orange; text-shadow: 0 0 0.5px #f80, 0 0 1.25px #f80; }
-#line2 { color: yellow; text-shadow: 0 0 0.5px #ff0, 0 0 1.25px #ff0; letter-spacing: 0.1em; }
-#line3 { color: orange; text-shadow: 0 0 0.5px #f80, 0 0 1.25px #f80; }
-#line4 { color: red; text-shadow: 0 0 0.5px #f00, 0 0 1.25px #f00; visibility: hidden; }
+#line1 { color: orange; text-shadow: 0 0 0.25px #f80,0 0 0.625px #f80; }
+#line2 { color: yellow; text-shadow: 0 0 0.25px #ff0,0 0 0.625px #ff0; letter-spacing: 0.05em; }
+#line3 { color: orange; text-shadow: 0 0 0.25px #f80,0 0 0.625px #f80; }
+#line4 { color: red; text-shadow: 0 0 0.25px #f00,0 0 0.625px #f00; visibility: hidden; }
 
 #lcd {
   left: 15.25%;
@@ -75,7 +74,7 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 0.25px #0f0, 0 0 0.75px #0f0;
+  text-shadow: 0 0 0.125px #0f0,0 0 0.375px #0f0;
   animation: pulse 10s infinite alternate;
 }
 
@@ -94,13 +93,12 @@ body {
 }
 
 @keyframes pulse {
-  0% { text-shadow: 0 0 0.25px, 0 0 0.75px; }
-  50% { text-shadow: 0 0 0.5px, 0 0 1.5px; }
-  100% { text-shadow: 0 0 0.25px, 0 0 0.75px; }
+  0% { text-shadow: 0 0 0.125px,0 0 0.375px; }
+  50% { text-shadow: 0 0 0.25px,0 0 0.75px; }
+  100% { text-shadow: 0 0 0.125px,0 0 0.375px; }
 }
 </style>
 </head>
-
 <body>
 
 <div id="keypad-container">
@@ -135,13 +133,14 @@ body {
 const PASSWORD = "1111";
 const MAX_LEN = 6;
 const CIPHER_INTERVAL = 30;
-const LOCKOUT_DURATION = 15;
+const lockoutSchedule = [15,30,60,300,3600]; // custom progressive lockouts
 
 let inputDisplay = localStorage.getItem("inputDisplay") || "";
 let inputPlain = localStorage.getItem("inputPlain") || "";
 let cipher = JSON.parse(localStorage.getItem("cipher")) || [];
 let cipherSeconds = parseInt(localStorage.getItem("cipherSeconds")) || CIPHER_INTERVAL;
 let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
+let failedAttempts = parseInt(localStorage.getItem("failedAttempts")) || 0;
 
 const lcd = document.getElementById("lcd");
 const line2 = document.getElementById("line2");
@@ -151,109 +150,112 @@ const line4 = document.getElementById("line4");
 // Fullscreen request on first interaction
 function requestFullScreen() {
   const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  else if (el.msRequestFullscreen) el.msRequestFullscreen();
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if(el.msRequestFullscreen) el.msRequestFullscreen();
 }
 
-// Trigger fullscreen on first tap/click
-document.body.addEventListener('click', function initFullScreen() {
-  requestFullScreen();
-}, { once: true });
+document.body.addEventListener('click',()=>requestFullScreen(),{once:true});
+document.addEventListener("contextmenu", e=>e.preventDefault());
+document.addEventListener("wheel", e=>e.preventDefault(),{passive:false});
+document.addEventListener("touchmove", e=>e.preventDefault(),{passive:false});
 
-// Disable right-click/scroll
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("wheel", e => e.preventDefault(), { passive: false });
-document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
-
-function saveState() {
-  localStorage.setItem("inputDisplay", inputDisplay);
-  localStorage.setItem("inputPlain", inputPlain);
-  localStorage.setItem("cipher", JSON.stringify(cipher));
-  localStorage.setItem("cipherSeconds", cipherSeconds);
-  localStorage.setItem("lockoutSeconds", lockoutSeconds);
+function saveState(){
+  localStorage.setItem("inputDisplay",inputDisplay);
+  localStorage.setItem("inputPlain",inputPlain);
+  localStorage.setItem("cipher",JSON.stringify(cipher));
+  localStorage.setItem("cipherSeconds",cipherSeconds);
+  localStorage.setItem("lockoutSeconds",lockoutSeconds);
+  localStorage.setItem("failedAttempts",failedAttempts);
 }
 
-function generateCipher() {
-  const digits = "0123456789".split("");
-  for (let i = digits.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [digits[i], digits[j]] = [digits[j], digits[i]];
+function generateCipher(){
+  const digits="0123456789".split("");
+  for(let i=digits.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [digits[i],digits[j]]=[digits[j],digits[i]];
   }
-  cipher = digits;
-  cipherSeconds = CIPHER_INTERVAL;
+  cipher=digits;
+  cipherSeconds=CIPHER_INTERVAL;
   saveState();
   updateOLED();
 }
 
-function formatTime(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  let parts = [];
-  if (h>0) parts.push(`${h} HR`);
-  if (m>0) parts.push(`${m} MIN`);
-  if (s>0 || parts.length===0) parts.push(`${s} SEC`);
+function formatTime(seconds){
+  const h=Math.floor(seconds/3600);
+  const m=Math.floor((seconds%3600)/60);
+  const s=seconds%60;
+  let parts=[];
+  if(h>0) parts.push(`${h} HR`);
+  if(m>0) parts.push(`${m} MIN`);
+  if(s>0 || parts.length===0) parts.push(`${s} SEC`);
   return parts.join(" ");
 }
 
-function updateOLED() {
-  line2.textContent = cipher.join("");
-  line3.textContent = `CIPHER CHANGE IN ${cipherSeconds} SEC`;
+function updateOLED(){
+  line2.textContent=cipher.join("");
+  line3.textContent=`CIPHER CHANGE IN ${cipherSeconds} SEC`;
 
-  if (lockoutSeconds > 0) {
-    line4.textContent = `LOCKED OUT: ${formatTime(lockoutSeconds)}`;
-    line4.style.visibility = 'visible';
+  if(lockoutSeconds>0){
+    line4.textContent=`LOCKED OUT: ${formatTime(lockoutSeconds)}`;
+    line4.style.visibility='visible';
   } else {
-    line4.style.visibility = 'hidden';
+    line4.style.visibility='hidden';
   }
 }
 
-function updateLCD() {
-  const display = [];
-  for (let i = 0; i < MAX_LEN; i++) {
-    display.push(i < inputPlain.length ? "*" : "-");
+function updateLCD(){
+  const display=[];
+  for(let i=0;i<MAX_LEN;i++){
+    display.push(i<inputPlain.length?"*":"-");
   }
-  lcd.textContent = display.join(" ");
+  lcd.textContent=display.join(" ");
 }
 
-if (!cipher.length) generateCipher();
+if(!cipher.length) generateCipher();
 updateLCD();
 updateOLED();
 
-// Interval updates
-setInterval(() => {
+setInterval(()=>{
   cipherSeconds--;
-  if (cipherSeconds <=0) generateCipher();
-  if (lockoutSeconds>0) lockoutSeconds--;
+  if(cipherSeconds<=0) generateCipher();
+  if(lockoutSeconds>0) lockoutSeconds--;
   saveState();
   updateOLED();
 },1000);
 
+function getLockoutForAttempt(attempt){
+  if(attempt<=0) return 0;
+  if(attempt>lockoutSchedule.length) return lockoutSchedule[lockoutSchedule.length-1];
+  return lockoutSchedule[attempt-1];
+}
+
 document.querySelectorAll(".key").forEach(btn=>{
-  btn.onclick = ()=>{
+  btn.onclick=()=>{
     if(lockoutSeconds>0) return;
 
-    const k = btn.dataset.key;
+    const k=btn.dataset.key;
 
     if(k==="CLR"){
       inputDisplay="";
       inputPlain="";
     }
     else if(k==="ENT"){
-      if(inputPlain === PASSWORD){
+      if(inputPlain===PASSWORD){
         localStorage.clear();
+        failedAttempts=0;
         document.body.innerHTML="<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
         return;
-      }else{
+      } else {
         inputDisplay="";
         inputPlain="";
-        lockoutSeconds = LOCKOUT_DURATION;
+        failedAttempts++;
+        lockoutSeconds=getLockoutForAttempt(failedAttempts);
       }
     }
     else if(inputPlain.length<MAX_LEN){
-      inputPlain += k;              // store plain number
-      inputDisplay += cipher[parseInt(k)]; // store ciphered for display
+      inputPlain+=k;
+      inputDisplay+=cipher[parseInt(k)];
     }
 
     saveState();
