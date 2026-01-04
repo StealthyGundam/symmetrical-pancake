@@ -13,6 +13,8 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  overflow: hidden; /* prevent scrolling */
+  user-select: none; /* prevent text selection */
 }
 
 #keypad-container {
@@ -44,6 +46,7 @@ body {
   overflow-wrap: break-word;
   text-align: left;
   font-size: 0.9em; /* initial font size */
+  text-transform: uppercase; /* FORCE ALL CAPS */
 }
 
 #lcd {
@@ -113,6 +116,11 @@ let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
 const lcd = document.getElementById("lcd");
 const oled = document.getElementById("oled");
 
+// Disable right-click and scrolling
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("wheel", e => e.preventDefault(), { passive: false });
+document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+
 function generateCipher() {
   const digits = "0123456789".split("");
   for (let i = digits.length - 1; i > 0; i--) {
@@ -129,14 +137,15 @@ function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-  if (m > 0) return `${m}:${s.toString().padStart(2,'0')}`;
-  return `${s}`;
+  let parts = [];
+  if (h > 0) parts.push(`${h} HR`);
+  if (m > 0) parts.push(`${m} MIN`);
+  if (s > 0 || parts.length === 0) parts.push(`${s} SEC`);
+  return parts.join(" ");
 }
 
-// Auto-fit OLED text size if it overflows
 function fitOLEDText() {
-  let fontSize = 0.9; // em
+  let fontSize = 0.9;
   oled.style.fontSize = fontSize + "em";
   while (oled.scrollHeight > oled.clientHeight && fontSize > 0.5) {
     fontSize -= 0.05;
@@ -146,11 +155,11 @@ function fitOLEDText() {
 
 function updateOLED() {
   let text =
-`Decrypt the access code using the cipher.
+`DECRYPT THE ACCESS CODE USING THE CIPHER.
 
 ${cipher.join("")}
 
-Cipher change in ${cipherSeconds} seconds`;
+CIPHER CHANGE IN ${cipherSeconds} SECONDS`;
 
   if (lockoutSeconds > 0) {
     text += `\n\nLOCKED OUT: ${formatTime(lockoutSeconds)}`;
@@ -179,7 +188,6 @@ if (!cipher.length) generateCipher();
 updateLCD();
 updateOLED();
 
-// Main intervals
 setInterval(() => {
   cipherSeconds--;
   if (cipherSeconds <= 0) generateCipher();
@@ -202,7 +210,7 @@ document.querySelectorAll(".key").forEach(btn => {
       if (input === PASSWORD) {
         localStorage.clear();
         document.body.innerHTML =
-          "<h1 style='color:#0f0;font-family:monospace'>Success</h1>";
+          "<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
         return;
       } else {
         input = "";
