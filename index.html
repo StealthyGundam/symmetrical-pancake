@@ -53,6 +53,205 @@ body {
   font-size: 0.65em;
   text-align: center;
   text-transform: uppercase;
+  opacity: 0.9; /* added opacity */
+
+  overflow: hidden;
+  box-sizing: border-box;
+
+  color: #ffa500;
+  text-shadow:
+    0 0 1px rgba(255,165,0,0.5),
+    0 0 3px rgba(255,165,0,0.25);
+}
+
+.oled-line-1 { color: orange; }
+.oled-line-2 { color: orange; }
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; }
+.oled-line-4 { color: red; }
+
+/* LCD */
+#lcd {
+  position: absolute;
+  left: 15.25%;
+  top: 30.2%;
+  width: 69.66%;
+  height: 11.54%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3em;
+  color: #00ff55; /* match LCD.png green */
+  opacity: 0.9;   /* added opacity */
+
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  letter-spacing: 0.2em;
+  padding: 10px;
+
+  text-shadow:
+    0 0 1px rgba(0,255,85,0.4),
+    0 0 3px rgba(0,255,85,0.25);
+}
+
+/* Keys */
+.key {
+  position: absolute;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.key img {
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<div id="keypad-container">
+  <img id="keypad-base" src="assets/Keypad__BASE.png">
+
+  <div id="oled">
+    <div id="oled1" class="oled-line-1"></div>
+    <div id="oled2" class="oled-line-2"></div>
+    <div id="oled3" class="oled-line-3"></div>
+    <div id="oled4" class="oled-line-4"></div>
+  </div>
+
+  <div id="lcd"></div>
+
+  <!-- Buttons -->
+  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
+  <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
+  <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
+  <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
+  <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__4.png"></button>
+  <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__5.png"></button>
+  <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__6.png"></button>
+  <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__7.png"></button>
+  <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__8.png"></button>
+  <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__9.png"></button>
+  <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
+  <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
+</div>
+
+<script>
+const PASSWORD = "111111";
+const MAX_LEN = 6;
+const LOCKOUT_DURATION = 15;
+
+let input = "";
+let lockout = 0;
+let cipher = [];
+let cipherCountdown = 30;
+
+const lcd = document.getElementById("lcd");
+const o1 = document.getElementById("oled1");
+const o2 = document.getElementById("oled2");
+const o3 = document.getElementById("oled3");
+const o4 = document.getElementById("oled4");
+
+/* Disable right click */
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+/* Fullscreen attempt */
+document.body.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}, { once:true });
+
+function generateCipher() {
+  cipher = [..."0123456789"];
+  for (let i = cipher.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cipher[i], cipher[j]] = [cipher[j], cipher[i]];
+  }
+  cipherCountdown = 30;
+}
+
+function updateOLED() {
+  o1.textContent = "DECRYPT YOUR ACCESS CODE";
+  o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
+  o3.textContent = cipher.join("");
+  o4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
+}
+
+function updateLCD() {
+  let out = [];
+  for (let i = 0; i < MAX_LEN; i++) {
+    out.push(i < input.length ? "*" : "-");
+  }
+  lcd.textContent = out.join(" ");
+}
+
+generateCipher();
+updateOLED();
+updateLCD();
+
+/* Main interval */
+setInterval(() => {
+  if (lockout > 0) lockout--;
+  cipherCountdown--;
+  if (cipherCountdown <= 0) generateCipher();
+  updateOLED();
+}, 1000);
+
+/* Key presses */
+document.querySelectorAll(".key").forEach(btn => {
+  btn.onclick = () => {
+    if (lockout > 0) return;
+
+    const k = btn.dataset.key;
+
+    if (k === "CLR") {
+      input = "";
+    } else if (k === "ENT") {
+      // check ciphered input
+      let cipheredInput = input.split("").map(d => cipher[parseInt(d)]).join("");
+      if (cipheredInput === PASSWORD) {
+        document.body.innerHTML = "<h1 style='color:#0f0;font-family:Orbitron'>ACCESS GRANTED</h1>";
+        return;
+      } else {
+        input = "";
+        lockout = LOCKOUT_DURATION;
+      }
+    } else if (input.length < MAX_LEN) {
+      input += k;
+    }
+
+    updateLCD();
+    updateOLED();
+  };
+});
+</script>
+
+</body>
+</html>
+/* OLED constrained to PNG */
+#oled {
+  position: absolute;
+  left: 13.68%;
+  top: 3.8%;
+  width: 72.59%;
+  height: 22.18%;
+
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  justify-items: center;
+  align-items: center;
+
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 0.65em;
+  text-align: center;
+  text-transform: uppercase;
 
   overflow: hidden;
   box-sizing: border-box;
