@@ -36,10 +36,12 @@ body {
 #oled {
   left: 13.68%;
   top: 3.8%;
-  width: 72.59%;
+  width: 72.59%; /* ensure fits within OLED PNG */
   height: 22.18%;
   padding: 12px;
   white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   text-align: left;
   font-size: 0.9em;
 }
@@ -81,6 +83,7 @@ body {
   <div id="oled"></div>
   <div id="lcd"></div>
 
+  <!-- Buttons -->
   <!-- ROW 1 -->
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;">
     <img src="assets/Keypad__1.png">
@@ -162,7 +165,7 @@ Cipher changes in ${secondsRemaining} seconds`;
 function updateLCD() {
   const display = [];
   for (let i = 0; i < MAX_LEN; i++) {
-    display.push(i < input.length ? "●" : "-");
+    display.push(i < input.length ? "*" : "-");
   }
   lcd.textContent = display.join(" ");
 }
