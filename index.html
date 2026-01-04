@@ -103,12 +103,12 @@ body {
 const PASSWORD = "1111";
 const MAX_LEN = 6;
 const CIPHER_INTERVAL = 30;
-const LOCKOUT_DURATION = 15; // seconds
+const LOCKOUT_DURATION = 15;
 
-let input = "";
-let cipher = [];
-let cipherSeconds = CIPHER_INTERVAL;
-let lockoutSeconds = 0;
+let input = localStorage.getItem("input") || "";
+let cipher = JSON.parse(localStorage.getItem("cipher")) || [];
+let cipherSeconds = parseInt(localStorage.getItem("cipherSeconds")) || CIPHER_INTERVAL;
+let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
 
 const lcd = document.getElementById("lcd");
 const oled = document.getElementById("oled");
@@ -121,6 +121,7 @@ function generateCipher() {
   }
   cipher = digits;
   cipherSeconds = CIPHER_INTERVAL;
+  saveState();
   updateOLED();
 }
 
@@ -137,11 +138,10 @@ function updateOLED() {
   let text =
 `Translate the access code using the cipher below.
 
-0123456789 → ${cipher.join("")}
+${cipher.join("")}
 
-Cipher changes in ${cipherSeconds} seconds`;
+Cipher change in ${cipherSeconds} seconds`;
 
-  // Only show lockout line if user is actually locked out
   if (lockoutSeconds > 0) {
     text += `\n\nLOCKED OUT: ${formatTime(lockoutSeconds)}`;
   }
@@ -157,8 +157,16 @@ function updateLCD() {
   lcd.textContent = display.join(" ");
 }
 
-generateCipher();
+function saveState() {
+  localStorage.setItem("input", input);
+  localStorage.setItem("cipher", JSON.stringify(cipher));
+  localStorage.setItem("cipherSeconds", cipherSeconds);
+  localStorage.setItem("lockoutSeconds", lockoutSeconds);
+}
+
+if (!cipher.length) generateCipher();
 updateLCD();
+updateOLED();
 
 // Main intervals
 setInterval(() => {
@@ -167,19 +175,20 @@ setInterval(() => {
 
   if (lockoutSeconds > 0) lockoutSeconds--;
 
+  saveState();
   updateOLED();
 }, 1000);
 
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
-    if (lockoutSeconds > 0) return; // prevent input during lockout
+    if (lockoutSeconds > 0) return;
     const k = btn.dataset.key;
 
     if (k === "CLR") {
       input = "";
-    }
-    else if (k === "ENT") {
+    } else if (k === "ENT") {
       if (input === PASSWORD) {
+        localStorage.clear();
         document.body.innerHTML =
           "<h1 style='color:#0f0;font-family:monospace'>Success</h1>";
         return;
@@ -187,11 +196,11 @@ document.querySelectorAll(".key").forEach(btn => {
         input = "";
         lockoutSeconds = LOCKOUT_DURATION;
       }
-    }
-    else if (input.length < MAX_LEN) {
+    } else if (input.length < MAX_LEN) {
       input += cipher[parseInt(k)];
     }
 
+    saveState();
     updateLCD();
     updateOLED();
   };
