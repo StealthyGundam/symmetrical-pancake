@@ -35,7 +35,6 @@ body {
   pointer-events: none;
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
-  transition: text-shadow 0.5s ease-in-out;
 }
 
 #oled {
@@ -53,16 +52,14 @@ body {
 }
 
 #oled div {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   height: 25%;
+  white-space: nowrap;
 }
 
-#line1 { color: orange; text-shadow: 0 0 0.03em #f80,0 0 0.06em #f80; animation: oledGlow 10s infinite alternate; }
-#line2 { color: yellow; text-shadow: 0 0 0.03em #ff0,0 0 0.06em #ff0; letter-spacing: 0.05em; animation: oledGlow 10s infinite alternate; }
-#line3 { color: orange; text-shadow: 0 0 0.03em #f80,0 0 0.06em #f80; animation: oledGlow 10s infinite alternate; }
-#line4 { color: red; text-shadow: 0 0 0.03em #f00,0 0 0.06em #f00; visibility: hidden; animation: oledGlow 10s infinite alternate; }
+#line1 { color: orange; text-shadow: 0 0 0.03em #f80; }
+#line2 { color: yellow; letter-spacing: 0.08em; text-shadow: 0 0 0.03em #ff0; }
+#line3 { color: orange; text-shadow: 0 0 0.03em #f80; }
+#line4 { color: red; visibility: hidden; text-shadow: 0 0 0.03em #f00; }
 
 #lcd {
   left: 15.25%;
@@ -75,8 +72,7 @@ body {
   font-size: 1.6em;
   letter-spacing: 0.3em;
   color: #0f0;
-  text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0;
-  animation: lcdGlow 10s infinite alternate;
+  text-shadow: 0 0 0.05em #0f0;
 }
 
 .key {
@@ -85,52 +81,38 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  touch-action: manipulation;
 }
-
-.key img {
-  width: 100%;
-  height: 100%;
-}
-
-@keyframes oledGlow {
-  0% { text-shadow: 0 0 0.03em,0 0 0.06em; }
-  50% { text-shadow: 0 0 0.06em,0 0 0.12em; }
-  100% { text-shadow: 0 0 0.03em,0 0 0.06em; }
-}
-
-@keyframes lcdGlow {
-  0% { text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0; }
-  50% { text-shadow: 0 0 0.06em #0f0,0 0 0.1875em #0f0; }
-  100% { text-shadow: 0 0 0.03em #0f0,0 0 0.09375em #0f0; }
-}
+.key img { width: 100%; height: 100%; }
 </style>
 </head>
+
 <body>
 
 <div id="keypad-container">
   <img id="keypad-base" src="assets/Keypad__BASE.png">
+
   <div id="oled">
     <div id="line1">DECRYPT THE ACCESS CODE</div>
     <div id="line2"></div>
     <div id="line3"></div>
     <div id="line4"></div>
   </div>
+
   <div id="lcd"></div>
 
-  <!-- Buttons ROW 1 -->
+  <!-- BUTTONS -->
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
   <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
   <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
-  <!-- Buttons ROW 2 -->
+
   <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__4.png"></button>
   <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__5.png"></button>
   <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__6.png"></button>
-  <!-- Buttons ROW 3 -->
+
   <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__7.png"></button>
   <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__8.png"></button>
   <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__9.png"></button>
-  <!-- Buttons ROW 4 -->
+
   <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
   <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
   <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
@@ -140,120 +122,80 @@ body {
 const PASSWORD = "1111";
 const MAX_LEN = 4;
 const CIPHER_INTERVAL = 30;
-const FIXED_LOCKOUT = 15;
+const LOCKOUT_DURATION = 15;
 
-let inputPlain = localStorage.getItem("inputPlain") || "";
-let cipher = JSON.parse(localStorage.getItem("cipher")) || [];
-let cipherSeconds = parseInt(localStorage.getItem("cipherSeconds")) || CIPHER_INTERVAL;
-let lockoutSeconds = parseInt(localStorage.getItem("lockoutSeconds")) || 0;
+let inputKeys = "";
+let lockoutSeconds = 0;
+let cipherSeconds = CIPHER_INTERVAL;
+let cipher = [];
 
 const lcd = document.getElementById("lcd");
 const line2 = document.getElementById("line2");
 const line3 = document.getElementById("line3");
 const line4 = document.getElementById("line4");
 
-function requestFullScreen() {
-  const el=document.documentElement;
-  if(el.requestFullscreen) el.requestFullscreen();
-  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  else if(el.msRequestFullscreen) el.msRequestFullscreen();
-}
-document.body.addEventListener('click',()=>requestFullScreen(),{once:true});
-document.addEventListener("contextmenu", e=>e.preventDefault());
-document.addEventListener("wheel", e=>e.preventDefault(),{passive:false});
-document.addEventListener("touchmove", e=>e.preventDefault(),{passive:false});
-
-function saveState(){
-  localStorage.setItem("inputPlain", inputPlain);
-  localStorage.setItem("cipher", JSON.stringify(cipher));
-  localStorage.setItem("cipherSeconds", cipherSeconds);
-  localStorage.setItem("lockoutSeconds", lockoutSeconds);
-}
-
-function generateCipher(){
-  const digits="0123456789".split("");
-  for(let i=digits.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [digits[i],digits[j]]=[digits[j],digits[i]];
+function generateCipher() {
+  const digits = "0123456789".split("");
+  for (let i = digits.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [digits[i], digits[j]] = [digits[j], digits[i]];
   }
-  cipher=digits;
-  cipherSeconds=CIPHER_INTERVAL;
-  saveState();
-  updateOLED();
+  cipher = digits;
+  cipherSeconds = CIPHER_INTERVAL;
 }
 
-function formatTime(seconds){
-  const h=Math.floor(seconds/3600);
-  const m=Math.floor((seconds%3600)/60);
-  const s=seconds%60;
-  let parts=[];
-  if(h>0) parts.push(`${h} HR`);
-  if(m>0) parts.push(`${m} MIN`);
-  if(s>0 || parts.length===0) parts.push(`${s} SEC`);
-  return parts.join(" ");
-}
-
-function updateOLED(){
-  line2.textContent=inputPlain ? inputPlain.split("").map(d=>cipher[parseInt(d)]).join("") : "";
-  line3.textContent=`CIPHER CHANGE IN ${cipherSeconds} SEC`;
-
-  if(lockoutSeconds>0){
-    line4.textContent=`LOCKED OUT: ${formatTime(lockoutSeconds)}`;
-    line4.style.visibility='visible';
-  } else {
-    line4.style.visibility='hidden';
+function updateOLED() {
+  line2.textContent = cipher.join("");
+  line3.textContent = `CIPHER CHANGE IN ${cipherSeconds} SEC`;
+  line4.style.visibility = lockoutSeconds > 0 ? "visible" : "hidden";
+  if (lockoutSeconds > 0) {
+    line4.textContent = `LOCKED OUT: ${lockoutSeconds} SEC`;
   }
 }
 
-function updateLCD(){
-  lcd.textContent=inputPlain.split("").map(d=>cipher[parseInt(d)]).join("").split("").join(" ");
+function updateLCD() {
+  lcd.textContent = inputKeys.split("").join(" ");
 }
 
-if(!cipher.length) generateCipher();
-updateLCD();
+function getMappedInput() {
+  return inputKeys.split("").map(k => cipher[parseInt(k)]).join("");
+}
+
+if (!cipher.length) generateCipher();
 updateOLED();
+updateLCD();
 
-setInterval(()=>{
+setInterval(() => {
   cipherSeconds--;
-  if(cipherSeconds<=0) generateCipher();
-  if(lockoutSeconds>0) lockoutSeconds--;
-  saveState();
+  if (cipherSeconds <= 0) generateCipher();
+  if (lockoutSeconds > 0) lockoutSeconds--;
   updateOLED();
-  updateLCD();
-},1000);
+}, 1000);
 
-function getCipheredPassword() {
-  return PASSWORD.split("").map(d => cipher[parseInt(d)]).join("");
-}
+document.querySelectorAll(".key").forEach(btn => {
+  btn.onclick = () => {
+    if (lockoutSeconds > 0) return;
 
-document.querySelectorAll(".key").forEach(btn=>{
-  btn.onclick=()=>{
-    if(lockoutSeconds>0) return;
+    const k = btn.dataset.key;
 
-    const k=btn.dataset.key;
-
-    if(k==="CLR"){
-      inputPlain="";
-    }
-    else if(k==="ENT"){
-      const enteredCipheredDigits = inputPlain.split("").map(d=>cipher[parseInt(d)]).join("");
-      if(enteredCipheredDigits===getCipheredPassword()){
-        localStorage.clear();
-        document.body.innerHTML="<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
+    if (k === "CLR") {
+      inputKeys = "";
+    } else if (k === "ENT") {
+      if (getMappedInput() === PASSWORD) {
+        document.body.innerHTML =
+          "<h1 style='color:#0f0;font-family:monospace'>SUCCESS</h1>";
         return;
       } else {
-        inputPlain="";
-        lockoutSeconds=FIXED_LOCKOUT;
+        inputKeys = "";
+        lockoutSeconds = LOCKOUT_DURATION;
       }
-    }
-    else if(inputPlain.length<MAX_LEN){
-      inputPlain+=k;
+    } else if (inputKeys.length < MAX_LEN) {
+      inputKeys += k;
     }
 
-    saveState();
     updateLCD();
     updateOLED();
-  }
+  };
 });
 </script>
 
