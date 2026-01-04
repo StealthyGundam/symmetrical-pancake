@@ -43,7 +43,7 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   text-align: left;
-  font-size: 0.9em;
+  font-size: 0.9em; /* initial font size */
 }
 
 #lcd {
@@ -134,9 +134,19 @@ function formatTime(seconds) {
   return `${s}`;
 }
 
+// Auto-fit OLED text size if it overflows
+function fitOLEDText() {
+  let fontSize = 0.9; // em
+  oled.style.fontSize = fontSize + "em";
+  while (oled.scrollHeight > oled.clientHeight && fontSize > 0.5) {
+    fontSize -= 0.05;
+    oled.style.fontSize = fontSize + "em";
+  }
+}
+
 function updateOLED() {
   let text =
-`Translate the access code using the cipher below.
+`Decrypt the access code using the cipher.
 
 ${cipher.join("")}
 
@@ -147,6 +157,7 @@ Cipher change in ${cipherSeconds} seconds`;
   }
 
   oled.textContent = text;
+  fitOLEDText();
 }
 
 function updateLCD() {
@@ -182,6 +193,7 @@ setInterval(() => {
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
     if (lockoutSeconds > 0) return;
+
     const k = btn.dataset.key;
 
     if (k === "CLR") {
