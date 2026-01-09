@@ -200,7 +200,9 @@ function fitOLEDText() {
 
   lines.forEach(line => {
     line.style.transform = "scale(1)";
-    const scaleX = rect.width / line.scrollWidth;
+    const usableWidth = rect.width * 0.5;   // ← match your 50%
+const scaleX = usableWidth / line.scrollWidth;
+
     const scaleY = lineHeight / line.getBoundingClientRect().height;
     scale = Math.min(scale, scaleX, scaleY);
   });
