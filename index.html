@@ -48,7 +48,7 @@ body {
   display: block;
 }
 
-/* OLED */
+/* ===== OLED ===== */
 #oled {
   position: absolute;
   left: 13.68%;
@@ -74,15 +74,16 @@ body {
 }
 
 #oled div {
-  flex: 1;                       /* lock vertical positions */
-  width: 70%;
-         margin: 0 auto;     /* center it */
+  flex: 1;
+  width: 92%;                 /* ← OLED TEXT WIDTH (%) */
+  margin: 0 auto;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
   line-height: 1;
-  font-size: 1em;                /* base size, scaled by transform */
+  font-size: 1em;
   transform-origin: center center;
   white-space: nowrap;
 }
@@ -92,7 +93,7 @@ body {
 .oled-line-3 { color: yellow; letter-spacing: 0.05em; }
 .oled-line-4 { color: red; }
 
-/* LCD (unchanged) */
+/* ===== LCD (unchanged) ===== */
 #lcd {
   position: absolute;
   left: 15.25%;
@@ -167,6 +168,9 @@ const PASSWORD = "01234567";
 const MAX_LEN = 8;
 const LOCKOUT_DURATION = 15;
 
+/* 🔧 MATCH THIS TO CSS WIDTH (92% → 0.92) */
+const OLED_TEXT_WIDTH = 0.92;
+
 let input = "";
 let lockout = 0;
 let cipher = [];
@@ -189,21 +193,19 @@ function generateCipher() {
   cipherCountdown = 30;
 }
 
-/* One shared scale for all OLED lines */
+/* Shared scale for all OLED lines */
 function fitOLEDText() {
   const oled = document.getElementById("oled");
   const lines = oled.querySelectorAll("div");
   const rect = oled.getBoundingClientRect();
   const lineHeight = rect.height / lines.length;
 
+  const usableWidth = rect.width * OLED_TEXT_WIDTH;
   let scale = Infinity;
 
   lines.forEach(line => {
     line.style.transform = "scale(1)";
-    const usableWidth = rect.width * 0.70;   // ← match your 70%
-         
-const scaleX = usableWidth / line.scrollWidth;
-
+    const scaleX = usableWidth / line.scrollWidth;
     const scaleY = lineHeight / line.getBoundingClientRect().height;
     scale = Math.min(scale, scaleX, scaleY);
   });
@@ -225,7 +227,7 @@ function updateLCD() {
   lcd.textContent = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   ).join(" ");
-}%
+}
 
 generateCipher();
 updateOLED();
