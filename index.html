@@ -166,23 +166,20 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// Scale line 1 using canvas width measurement
-function scaleLine1Text(){
-  const container = o1.parentElement;
-  const span = o1.querySelector("span");
+// ===== Canvas-based width+height scaling for horizontal fit
+function scaleLineText(el){
+  const container = el.parentElement;
+  const span = el.querySelector("span");
   if(!span) return;
 
-  const padding = 0.92;
-  const maxWidth = container.clientWidth * padding;
-  const maxHeight = container.clientHeight * padding;
+  const maxWidth = container.clientWidth;
+  const maxHeight = container.clientHeight;
 
   const text = span.textContent;
-
   let fontSize = maxHeight;
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-
   ctx.font = `${fontSize}px 'Share Tech Mono'`;
 
   while(ctx.measureText(text).width > maxWidth && fontSize > 1){
@@ -193,25 +190,26 @@ function scaleLine1Text(){
   span.style.fontSize = fontSize + "px";
 }
 
-// Other lines scale by height only
-function scaleText(el){
-  const container = el.parentElement;
-  const span = el.querySelector("span");
-  if(!span) return;
-  const containerHeight = container.clientHeight * 0.92;
-  span.style.fontSize = containerHeight+"px";
-}
-
 function updateOLED(){
   o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
   o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
   o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
   o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
 
-  scaleLine1Text();
-  scaleText(o2);
-  scaleText(o3);
-  scaleText(o4);
+  // Scale lines
+  scaleLineText(o1);
+  scaleText(o2);       // numbers vertical scale only
+  scaleLineText(o3);   // horizontal + vertical fit
+  scaleLineText(o4);   // horizontal + vertical fit
+}
+
+// Vertical scale for line 2
+function scaleText(el){
+  const container = el.parentElement;
+  const span = el.querySelector("span");
+  if(!span) return;
+  const containerHeight = container.clientHeight;
+  span.style.fontSize = containerHeight+"px";
 }
 
 function updateLCD(){
