@@ -157,8 +157,8 @@ body {
 </div>
 
 <script>
-const PASSWORD = "111111";
-const MAX_LEN = 6;
+const PASSWORD = "0123456789";
+const MAX_LEN = 10;
 const LOCKOUT_DURATION = 15;
 
 let input = "";
@@ -192,7 +192,7 @@ function generateCipher() {
 }
 
 function updateOLED() {
-  o1.textContent = "DECRYPT YOUR ACCESS CODE";
+  o1.textContent = "DECIPHER YOUR ACCESS CODE";
   o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
   o3.textContent = cipher.join("");
   o4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
