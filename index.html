@@ -149,17 +149,12 @@ body {
   transform-origin: center;
 }
 
+/* Remove flicker: no animations */
 .lcd-char {
   min-width: 1ch;
   text-align: center;
-  opacity: 0;
-  filter: blur(0.4px);
-  animation: lcdFadeIn 0.15s ease forwards;
-}
-
-@keyframes lcdFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  opacity: 1;
+  filter: none;
 }
 
 /* ===== Keys ===== */
@@ -210,7 +205,6 @@ body {
 </div>
 
 <script>
-/* ===== Audio + Fullscreen ===== */
 const audio = document.getElementById("bg-audio");
 audio.play().catch(() => {
   document.addEventListener("click", () => audio.play(), { once: true });
@@ -224,14 +218,12 @@ document.body.addEventListener("click", () => {
 
 document.addEventListener("contextmenu", e => e.preventDefault());
 
-/* ===== Constants ===== */
 const PASSWORD = "01234567";
 const MAX_LEN = 8;
 const LOCKOUT_DURATION = 15;
 const OLED_TEXT_WIDTH = 0.92;
 const LCD_TEXT_WIDTH  = 0.90;
 
-/* ===== State ===== */
 let input = "";
 let lockout = 0;
 let cipher = [];
@@ -243,16 +235,18 @@ const o3 = document.getElementById("oled3");
 const o4 = document.getElementById("oled4");
 const lcdText = document.getElementById("lcdText");
 
-/* ===== Burn-in container ===== */
 const oledContainer = document.getElementById("oled");
 const burninLayer = document.createElement("div");
 burninLayer.className = "oled-burnin";
 oledContainer.appendChild(burninLayer);
 
-/* ===== Functions ===== */
 function generateCipher() {
   cipher = [..."0123456789"].sort(() => Math.random() - 0.5);
   cipherCountdown = 30;
+}
+
+function padZero(num) {
+  return num < 10 ? "0"+num : ""+num;
 }
 
 function fitScaledText(container, elements, widthRatio) {
@@ -271,20 +265,18 @@ function fitScaledText(container, elements, widthRatio) {
   });
 }
 
-/* ===== OLED update ===== */
 function updateOLED() {
   [o1,o2,o3,o4].forEach(l => l.style.opacity = 0.4);
 
   o1.textContent = "DECIPHER YOUR ACCESS CODE";
-  o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
+  o2.textContent = `CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
   o3.textContent = cipher.join("");
-  o4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
+  o4.textContent = lockout > 0 ? `LOCKED OUT: ${padZero(lockout)} SEC` : "";
 
   requestAnimationFrame(() => {
     [o1,o2,o3,o4].forEach(l => l.style.opacity = 1);
     fitScaledText(oledContainer, [o1,o2,o3,o4], OLED_TEXT_WIDTH);
 
-    // Burn-in accumulation
     burninLayer.innerHTML += `
       <div class="oled-line-1">${o1.textContent}</div>
       <div class="oled-line-2">${o2.textContent}</div>
@@ -294,23 +286,14 @@ function updateOLED() {
   });
 }
 
-/* ===== LCD update without flicker ===== */
 function updateLCD() {
-  lcdText.innerHTML = "";
   const chars = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   );
-  chars.forEach((ch, i) => {
-    const s = document.createElement("span");
-    s.className = "lcd-char";
-    s.textContent = ch;
-    s.style.animationDelay = `${i*40}ms`;
-    lcdText.appendChild(s);
-  });
+  lcdText.textContent = chars.join(" ");
   fitScaledText(document.getElementById("lcd"), [lcdText], LCD_TEXT_WIDTH);
 }
 
-/* ===== Init ===== */
 generateCipher();
 updateOLED();
 updateLCD();
