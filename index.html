@@ -41,54 +41,28 @@ body {
   display: block;
 }
 
-/* ===== OLED ===== */
-#oled {
+/* ===== OLED LINES ===== */
+.oled-line {
   position: absolute;
-  left: 13.68%;
-  top: 3.8%;
-  width: 72.59%;
-  height: 22.18%;
+  text-align: center;
   font-family: 'Share Tech Mono', monospace;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  overflow: hidden;
-}
-
-/* Scanlines */
-#oled::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.08) 0px,
-    rgba(0,0,0,0.08) 0.5px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
-}
-
-/* Lines absolute positioning */
-#oled div {
-  position: absolute;
-  left: 50%;
-  width: 92%;
-  transform-origin: top center;
-  text-align: center;
   white-space: nowrap;
 }
 
-/* Line positions */
-#oled1 { top: 0%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
-#oled2 { top: 12%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); height:36%; animation: glowPulse 2s infinite alternate; } /* combined 2+3 */
-#oled4 { top: 55%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
-#oled5 { top: 70%; color: transparent; }
-#oled6 { top: 75%; color: red; text-shadow:0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3); }
+.oled-line img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: block;
+  z-index: 0;
+}
 
-@keyframes glowPulse {
-  0%,100% { text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); }
-  50% { text-shadow:0 0 4px rgba(255,255,0,0.9),0 0 8px rgba(255,255,0,0.35); }
+.oled-line span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  transform-origin: center center;
 }
 
 /* ===== LCD ===== */
@@ -125,14 +99,28 @@ body {
 <div id="keypad-container">
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
-  <div id="oled">
-    <div id="oled1"></div>
-    <div id="oled2"></div> <!-- combined line 2+3 for big cipher numbers -->
-    <div id="oled4"></div>
-    <div id="oled5"></div>
-    <div id="oled6"></div>
+  <!-- OLED Lines -->
+  <div class="oled-line" style="left:429.614px; top:52px; width:600px; height:80px;">
+    <img src="assets/Keypad__OLED LINE 1.png">
+    <span id="oled1"></span>
   </div>
 
+  <div class="oled-line" style="left:429.614px; top:132.421px; width:600px; height:100px;">
+    <img src="assets/Keypad__OLED LINE 2.png">
+    <span id="oled2"></span>
+  </div>
+
+  <div class="oled-line" style="left:429.614px; top:232.421px; width:600px; height:50px;">
+    <img src="assets/Keypad__OLED LINE 3.png">
+    <span id="oled3"></span>
+  </div>
+
+  <div class="oled-line" style="left:429.614px; top:282.421px; width:600px; height:50px;">
+    <img src="assets/Keypad__OLED LINE 4.png">
+    <span id="oled4"></span>
+  </div>
+
+  <!-- LCD -->
   <div id="lcd">
     <span id="lcdText"></span>
   </div>
@@ -150,6 +138,7 @@ body {
   <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
   <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
   <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
+
 </div>
 
 <script>
@@ -163,35 +152,32 @@ let input="", lockout=0, cipher=[], cipherCountdown=30;
 
 const o1=document.getElementById("oled1");
 const o2=document.getElementById("oled2"); // big cipher numbers
+const o3=document.getElementById("oled3");
 const o4=document.getElementById("oled4");
-const o5=document.getElementById("oled5");
-const o6=document.getElementById("oled6");
 const lcdText=document.getElementById("lcdText");
-const oledContainer=document.getElementById("oled");
 
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// scale both horizontally and vertically to fill container
-function scaleLine(line, maxHeight){
-  const wScale = (oledContainer.clientWidth*0.92)/line.scrollWidth;
-  const hScale = maxHeight / line.scrollHeight;
+// scale horizontally and vertically to fill container
+function scaleText(el){
+  const container = el.parentElement;
+  const wScale = (container.clientWidth*0.92)/el.scrollWidth;
+  const hScale = (container.clientHeight)/el.scrollHeight;
   const scale = Math.min(wScale, hScale);
-  line.style.transform = `translateX(-50%) scale(${scale})`;
+  el.style.transform = `scale(${scale})`;
 }
 
 function updateOLED(){
   o1.textContent="DECIPHER YOUR ACCESS CODE";
   o2.textContent=cipher.join("");
-  o4.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
-  o5.textContent="";
-  o6.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
+  o3.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
+  o4.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
 
-  scaleLine(o1, oledContainer.clientHeight*0.12);
-  scaleLine(o2, oledContainer.clientHeight*0.36); // combined line 2+3
-  scaleLine(o4, oledContainer.clientHeight*0.12);
-  scaleLine(o5, oledContainer.clientHeight*0.12);
-  scaleLine(o6, oledContainer.clientHeight*0.12);
+  scaleText(o1);
+  scaleText(o2);
+  scaleText(o3);
+  scaleText(o4);
 }
 
 function updateLCD(){
