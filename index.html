@@ -66,7 +66,6 @@ body {
     0 0 6px rgba(255,165,0,0.25);
 }
 
-/* OLED scanlines */
 #oled::after {
   content: "";
   position: absolute;
@@ -129,7 +128,8 @@ body {
 #lcd span {
   width: 90%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* CENTERING FIX */
+  align-items: center;     /* CENTERING FIX */
   transform-origin: center center;
 }
 
@@ -178,7 +178,7 @@ body {
     <span id="lcdText"></span>
   </div>
 
-  <!-- ===== Buttons (RESTORED) ===== -->
+  <!-- ===== Buttons ===== -->
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
   <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
   <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
