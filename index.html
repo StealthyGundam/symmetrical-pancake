@@ -158,7 +158,7 @@ audio.play().catch(()=>{document.addEventListener("click",()=>audio.play(),{once
 document.body.addEventListener("click",()=>{if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});},{once:true});
 document.addEventListener("contextmenu",e=>e.preventDefault());
 
-const PASSWORD="01234567", MAX_LEN=8, LOCKOUT_DURATION=15;
+const PASSWORD="01234567", MAX_LEN=8, LOCKOUT_DURATION=30;
 let input="", lockout=0, cipher=[], cipherCountdown=30;
 
 const o1=document.getElementById("oled1");
