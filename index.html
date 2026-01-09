@@ -112,23 +112,23 @@ body {
 <div id="keypad-container">
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
-  <!-- OLED Lines -->
-  <div class="oled-line" style="left:129.614px; top:52px; width:600px; height:80px;">
+  <!-- OLED Lines with percentage positions -->
+  <div class="oled-line" style="left:15.1%; top:4%; width:70%; height:6.2%;">
     <img src="assets/Keypad__OLED LINE 1.png">
     <span id="oled1"></span>
   </div>
 
-  <div class="oled-line" style="left:129.614px; top:132.421px; width:600px; height:100px;">
+  <div class="oled-line" style="left:15.1%; top:10.3%; width:70%; height:7.7%;">
     <img src="assets/Keypad__OLED LINE 2.png">
     <span id="oled2"></span>
   </div>
 
-  <div class="oled-line" style="left:129.614px; top:232.421px; width:600px; height:50px;">
+  <div class="oled-line" style="left:15.1%; top:18%; width:70%; height:3.9%;">
     <img src="assets/Keypad__OLED LINE 3.png">
     <span id="oled3"></span>
   </div>
 
-  <div class="oled-line" style="left:129.614px; top:282.421px; width:600px; height:50px;">
+  <div class="oled-line" style="left:15.1%; top:22%; width:70%; height:3.9%;">
     <img src="assets/Keypad__OLED LINE 4.png">
     <span id="oled4"></span>
   </div>
@@ -172,7 +172,6 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// scale text to fill container horizontally & vertically
 function scaleText(el){
   const container = el.parentElement;
   el.style.fontSize = "10px"; // reset
@@ -182,7 +181,6 @@ function scaleText(el){
   let fontSize = containerHeight;
   el.style.fontSize = fontSize+"px";
 
-  // reduce font if too wide
   if(el.scrollWidth > containerWidth){
     fontSize = fontSize * containerWidth / el.scrollWidth;
     el.style.fontSize = fontSize+"px";
