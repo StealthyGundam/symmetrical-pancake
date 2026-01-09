@@ -189,15 +189,16 @@ function generateCipher() {
   cipherCountdown = 30;
 }
 
-/* Auto-fit text to OLED container */
+/* Auto-fit text to OLED container (mobile-friendly) */
 function fitOLEDText() {
   const oled = document.getElementById("oled");
   const lines = oled.querySelectorAll("div");
 
   lines.forEach(line => {
     let fontSize = 10;
-    const maxWidth = oled.clientWidth * 0.95;
-    const maxHeight = oled.clientHeight / lines.length * 0.95;
+    const rect = oled.getBoundingClientRect();
+    const maxWidth = rect.width * 0.95;
+    const maxHeight = (rect.height / lines.length) * 0.95;
 
     line.style.fontSize = fontSize + "px";
 
@@ -264,6 +265,10 @@ document.querySelectorAll(".key").forEach(btn => {
     updateOLED();
   };
 });
+
+// Mobile-friendly scaling
+window.addEventListener('load', updateOLED);
+window.addEventListener('resize', updateOLED);
 </script>
 
 </body>
