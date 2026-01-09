@@ -73,10 +73,10 @@ body {
 }
 
 /* Line colors and glow effects */
-#oled1 span { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-#oled2 span { color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
-#oled3 span { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-#oled4 span { color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
+#oled1 span { text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+#oled2 span { text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
+#oled3 span { text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+#oled4 span { text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
 
 /* ===== LCD ===== */
 #lcd {
@@ -188,10 +188,15 @@ function scaleText(el){
 }
 
 function updateOLED(){
-  o1.textContent="DECIPHER YOUR ACCESS CODE";
-  o2.textContent=cipher.join("");
-  o3.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
-  o4.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
+  // Force colors dynamically
+  o1.textContent="DECIPHER YOUR ACCESS CODE"; 
+  o1.style.color="orange";
+  o2.textContent=cipher.join(""); 
+  o2.style.color="yellow";
+  o3.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`; 
+  o3.style.color="orange";
+  o4.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""; 
+  o4.style.color="red";
 
   scaleText(o1);
   scaleText(o2);
