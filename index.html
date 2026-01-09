@@ -13,7 +13,6 @@
 
 <script>
 const audio = document.getElementById('bg-audio');
-
 audio.play().catch(() => {
   document.addEventListener('click', () => audio.play());
 });
@@ -70,14 +69,16 @@ body {
   text-shadow:
     0 0 1px rgba(255,165,0,0.5),
     0 0 3px rgba(255,165,0,0.25);
-  white-space: nowrap; /* prevent wrapping */
+  white-space: nowrap;
 }
 
 #oled div {
   width: 100%;
   text-align: center;
   line-height: 1;
-  font-size: 1px; /* initial size, will be scaled by JS */
+  font-size: 1em; /* base font size */
+  transform-origin: center top;
+  white-space: nowrap;
 }
 
 .oled-line-1 { color: orange; }
@@ -159,7 +160,7 @@ body {
 <script>
 const PASSWORD = "01234567";
 const MAX_LEN = 8;
-const LOCKOUT_DURATION = 15;
+const LOCKOUT_DURATION = 30;
 
 let input = "";
 let lockout = 0;
@@ -189,26 +190,19 @@ function generateCipher() {
   cipherCountdown = 30;
 }
 
-/* Auto-fit text to OLED container (mobile-friendly) */
+/* Scale OLED text to fill container on any device */
 function fitOLEDText() {
   const oled = document.getElementById("oled");
   const lines = oled.querySelectorAll("div");
+  const rect = oled.getBoundingClientRect();
+  const lineHeight = rect.height / lines.length;
 
   lines.forEach(line => {
-    let fontSize = 10;
-    const rect = oled.getBoundingClientRect();
-    const maxWidth = rect.width * 0.95;
-    const maxHeight = (rect.height / lines.length) * 0.95;
-
-    line.style.fontSize = fontSize + "px";
-
-    while (line.scrollWidth < maxWidth && line.scrollHeight < maxHeight) {
-      fontSize++;
-      line.style.fontSize = fontSize + "px";
-      if (fontSize > 500) break;
-    }
-
-    line.style.fontSize = (fontSize - 1) + "px";
+    line.style.transform = "scale(1)";
+    const scaleY = lineHeight / line.getBoundingClientRect().height;
+    const scaleX = rect.width / line.scrollWidth;
+    const scale = Math.min(scaleX, scaleY);
+    line.style.transform = `scale(${scale})`;
   });
 }
 
@@ -266,7 +260,7 @@ document.querySelectorAll(".key").forEach(btn => {
   };
 });
 
-// Mobile-friendly scaling
+// Scale OLED after load and on resize (mobile-friendly)
 window.addEventListener('load', updateOLED);
 window.addEventListener('resize', updateOLED);
 </script>
