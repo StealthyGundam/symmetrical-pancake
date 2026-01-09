@@ -11,7 +11,8 @@
   loop>
 </audio>
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<!-- Google Fonts: Share Tech Mono -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
 html, body {
@@ -51,8 +52,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: 'Orbitron', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 700;
+  font-variant-numeric: tabular-nums; /* lock all digits width */
   overflow: hidden;
   box-sizing: border-box;
   white-space: nowrap;
@@ -89,24 +91,22 @@ body {
 /* Colors with text-shadow for glow */
 .oled-line-1 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
 .oled-line-2 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-/* Glow animation on cipher line */
 .oled-line-3 { color: yellow; letter-spacing: 0.05em; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); animation: glowPulse 2s infinite alternate; }
 .oled-line-4 { color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
 
-/* Glow animation keyframes */
 @keyframes glowPulse {
   0%, 100% { text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
   50% { text-shadow: 0 0 4px rgba(255,255,0,0.9), 0 0 8px rgba(255,255,0,0.35); }
 }
 
-/* OLED burn-in fade */
 .oled-burnin {
   position: absolute;
   top: 0;
   left: 0;
   pointer-events: none;
-  font-family: 'Orbitron', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   z-index: 0;
   mix-blend-mode: lighten;
@@ -132,8 +132,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Orbitron', monospace;
-  font-weight: 900; /* thicker for readability */
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: #00ff55;
   overflow: hidden;
   white-space: nowrap;
@@ -149,7 +150,6 @@ body {
   transform-origin: center;
 }
 
-/* Remove flicker: no animations */
 .lcd-char {
   min-width: 1ch;
   text-align: center;
@@ -189,7 +189,7 @@ body {
     <span id="lcdText"></span>
   </div>
 
-  <!-- ===== Buttons ===== -->
+  <!-- Buttons -->
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
   <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
   <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
@@ -206,14 +206,10 @@ body {
 
 <script>
 const audio = document.getElementById("bg-audio");
-audio.play().catch(() => {
-  document.addEventListener("click", () => audio.play(), { once: true });
-});
+audio.play().catch(() => { document.addEventListener("click", () => audio.play(), { once: true }); });
 
 document.body.addEventListener("click", () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(()=>{});
-  }
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
 }, { once: true });
 
 document.addEventListener("contextmenu", e => e.preventDefault());
@@ -260,9 +256,7 @@ function fitScaledText(container, elements, widthRatio) {
     const sy = lineHeight / el.getBoundingClientRect().height;
     scale = Math.min(scale, sx, sy);
   });
-  elements.forEach(el => {
-    el.style.transform = `scale(${scale})`;
-  });
+  elements.forEach(el => el.style.transform = `scale(${scale})`);
 }
 
 function updateOLED() {
@@ -287,9 +281,7 @@ function updateOLED() {
 }
 
 function updateLCD() {
-  const chars = Array.from({ length: MAX_LEN }, (_, i) =>
-    i < input.length ? "*" : "-"
-  );
+  const chars = Array.from({ length: MAX_LEN }, (_, i) => i < input.length ? "*" : "-");
   lcdText.textContent = chars.join(" ");
   fitScaledText(document.getElementById("lcd"), [lcdText], LCD_TEXT_WIDTH);
 }
@@ -315,7 +307,7 @@ document.querySelectorAll(".key").forEach(btn => {
       const ciphered = input.split("").map(d => cipher[d]).join("");
       if (ciphered === PASSWORD) {
         document.body.innerHTML =
-          "<h1 style='color:#0f0;font-family:Orbitron'>ACCESS GRANTED</h1>";
+          "<h1 style='color:#0f0;font-family:Share Tech Mono'>ACCESS GRANTED</h1>";
         return;
       }
       input = "";
