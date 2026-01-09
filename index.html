@@ -65,6 +65,12 @@ body {
   transform-origin: center center;
 }
 
+/* Line colors and glow */
+#oled1 span { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+#oled2 span { color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
+#oled3 span { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+#oled4 span { color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
+
 /* ===== LCD ===== */
 #lcd {
   position: absolute;
@@ -100,22 +106,22 @@ body {
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
   <!-- OLED Lines -->
-  <div class="oled-line" style="left:429.614px; top:52px; width:600px; height:80px;">
+  <div class="oled-line" style="left:129.614px; top:52px; width:600px; height:80px;">
     <img src="assets/Keypad__OLED LINE 1.png">
     <span id="oled1"></span>
   </div>
 
-  <div class="oled-line" style="left:429.614px; top:132.421px; width:600px; height:100px;">
+  <div class="oled-line" style="left:129.614px; top:132.421px; width:600px; height:100px;">
     <img src="assets/Keypad__OLED LINE 2.png">
     <span id="oled2"></span>
   </div>
 
-  <div class="oled-line" style="left:429.614px; top:232.421px; width:600px; height:50px;">
+  <div class="oled-line" style="left:129.614px; top:232.421px; width:600px; height:50px;">
     <img src="assets/Keypad__OLED LINE 3.png">
     <span id="oled3"></span>
   </div>
 
-  <div class="oled-line" style="left:429.614px; top:282.421px; width:600px; height:50px;">
+  <div class="oled-line" style="left:129.614px; top:282.421px; width:600px; height:50px;">
     <img src="assets/Keypad__OLED LINE 4.png">
     <span id="oled4"></span>
   </div>
@@ -165,7 +171,7 @@ function scaleText(el){
   const wScale = (container.clientWidth*0.92)/el.scrollWidth;
   const hScale = (container.clientHeight)/el.scrollHeight;
   const scale = Math.min(wScale, hScale);
-  el.style.transform = `scale(${scale})`;
+  el.style.transform = `translateX(-50%) scale(${scale})`;
 }
 
 function updateOLED(){
