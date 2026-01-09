@@ -5,15 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keypad</title>
 
-<script>
+    <audio id="bg-audio" 
+         src="https://raw.githubusercontent.com/StealthyGundam/symmetrical-pancake/main/assets/SWING.m4a" 
+         autoplay 
+         loop>
+  </audio>
+
+    <script>
 const audio = document.getElementById('bg-audio');
 
 audio.play().catch(() => {
-    // Autoplay blocked → play on first click
-    document.addEventListener('click', () => audio.play());
+  // If autoplay is blocked, play on first user click
+  document.addEventListener('click', () => audio.play());
 });
 </script>
 
+    
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
