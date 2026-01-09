@@ -11,7 +11,6 @@
   loop>
 </audio>
 
-<!-- Google Fonts: Share Tech Mono -->
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
@@ -55,6 +54,7 @@ body {
   overflow: hidden;
 }
 
+/* Scanlines */
 #oled::after {
   content: "";
   position: absolute;
@@ -69,39 +69,28 @@ body {
   pointer-events: none;
 }
 
-/* Each line is fixed vertically, horizontally centered */
+/* Lines absolute positioning */
 #oled div {
   position: absolute;
   left: 50%;
-  width: 92%; /* buffer */
+  width: 92%;
   transform-origin: top center;
   text-align: center;
   white-space: nowrap;
 }
 
-/* Vertical positions for the 4 lines */
+/* Line positions */
 #oled1 { top: 0%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
-#oled2 { top: 25%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
-#oled3 { top: 50%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); animation:glowPulse 2s infinite alternate; }
-#oled4 { top: 75%; color: red; text-shadow:0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3); }
+#oled2 { top: 12%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); animation: glowPulse 2s infinite alternate; }
+/* line3 same as line2, for visual span */
+#oled3 { top: 32%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); animation: glowPulse 2s infinite alternate; }
+#oled4 { top: 55%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
+#oled5 { top: 70%; color: transparent; }
+#oled6 { top: 75%; color: red; text-shadow:0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3); }
 
 @keyframes glowPulse {
   0%,100% { text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); }
   50% { text-shadow:0 0 4px rgba(255,255,0,0.9),0 0 8px rgba(255,255,0,0.35); }
-}
-
-.oled-burnin {
-  position: absolute;
-  top:0;
-  left:0;
-  pointer-events:none;
-  font-family:'Share Tech Mono', monospace;
-  font-weight:700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  z-index:0;
-  mix-blend-mode: lighten;
-  opacity:0.02;
 }
 
 /* ===== LCD ===== */
@@ -124,19 +113,13 @@ body {
   text-shadow: 0 0 2px rgba(0,255,85,0.6), 0 0 6px rgba(0,255,85,0.3);
 }
 
-#lcd span {
-  width: 90%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transform-origin: center;
-}
-
-.lcd-char { min-width: 1ch; text-align: center; }
+#lcd span { width: 90%; display: flex; justify-content:center; align-items:center; transform-origin:center; }
+.lcd-char { min-width:1ch; text-align:center; }
 
 /* ===== Keys ===== */
-.key { position: absolute; background:none; border:none; padding:0; cursor:pointer; }
-.key img { width: 100%; height: 100%; }
+.key { position:absolute; background:none; border:none; padding:0; cursor:pointer; }
+.key img { width:100%; height:100%; }
+
 </style>
 </head>
 
@@ -149,6 +132,8 @@ body {
     <div id="oled2"></div>
     <div id="oled3"></div>
     <div id="oled4"></div>
+    <div id="oled5"></div>
+    <div id="oled6"></div>
   </div>
 
   <div id="lcd">
@@ -171,36 +156,36 @@ body {
 </div>
 
 <script>
-const audio = document.getElementById("bg-audio");
-audio.play().catch(() => { document.addEventListener("click", () => audio.play(), { once: true }); });
-document.body.addEventListener("click", ()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }, { once:true });
-document.addEventListener("contextmenu", e=>e.preventDefault());
+const audio=document.getElementById("bg-audio");
+audio.play().catch(()=>{document.addEventListener("click",()=>audio.play(),{once:true});});
+document.body.addEventListener("click",()=>{if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});},{once:true});
+document.addEventListener("contextmenu",e=>e.preventDefault());
 
-const PASSWORD = "01234567";
-const MAX_LEN = 8;
-const LOCKOUT_DURATION = 15;
-
+const PASSWORD="01234567", MAX_LEN=8, LOCKOUT_DURATION=15;
 let input="", lockout=0, cipher=[], cipherCountdown=30;
 
 const o1=document.getElementById("oled1");
 const o2=document.getElementById("oled2");
 const o3=document.getElementById("oled3");
 const o4=document.getElementById("oled4");
+const o5=document.getElementById("oled5");
+const o6=document.getElementById("oled6");
 const lcdText=document.getElementById("lcdText");
 const oledContainer=document.getElementById("oled");
 
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
-function padZero(n){ return n<10?"0"+n:""+n; }
-
-// scale a line to fit width
+function padZero(n){ return n<10?"0"+n:n; }
 function scaleLine(line){ const scale=(oledContainer.clientWidth*0.92)/line.scrollWidth; line.style.transform=`translateX(-50%) scale(${scale})`; }
 
 function updateOLED(){
   o1.textContent="DECIPHER YOUR ACCESS CODE";
-  o2.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
-  o3.textContent=cipher.join("");
-  o4.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
-  [o1,o2,o3,o4].forEach(scaleLine);
+  const cipherStr=cipher.join("");
+  o2.textContent=cipherStr;
+  o3.textContent=cipherStr; // duplicate for 2-line visual
+  o4.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
+  o5.textContent="";
+  o6.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
+  [o1,o2,o3,o4,o5,o6].forEach(scaleLine);
 }
 
 function updateLCD(){
@@ -235,7 +220,7 @@ document.querySelectorAll(".key").forEach(btn=>{
   }
 });
 
-window.addEventListener("resize", ()=>{ updateOLED(); updateLCD(); });
+window.addEventListener("resize",()=>{updateOLED(); updateLCD();});
 </script>
 
 </body>
