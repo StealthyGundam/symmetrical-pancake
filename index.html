@@ -48,14 +48,11 @@ body {
   top: 3.8%;
   width: 72.59%;
   height: 22.18%;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   font-family: 'Orbitron', monospace;
   font-weight: 700;
-
   overflow: hidden;
   box-sizing: border-box;
   white-space: nowrap;
@@ -65,7 +62,6 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  /* Reduced scanline effect */
   background: repeating-linear-gradient(
     to bottom,
     rgba(0,0,0,0.08) 0px,
@@ -80,25 +76,30 @@ body {
   flex: 1;
   width: 92%;
   margin: 0 auto;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 1em;
   line-height: 1;
   transform-origin: center center;
   white-space: nowrap;
-
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, text-shadow 0.5s ease-in-out;
 }
 
+/* Colors with text-shadow for glow */
 .oled-line-1 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
 .oled-line-2 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-.oled-line-3 { color: yellow; letter-spacing: 0.05em; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
-.oled-line-4 { color: red; text-shadow: 0 0 2px rgba(255,0,0,0.6), 0 0 6px rgba(255,0,0,0.25); }
+/* Glow animation on cipher line */
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); animation: glowPulse 2s infinite alternate; }
+.oled-line-4 { color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
 
-/* OLED burn-in effect */
+/* Glow animation keyframes */
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
+  50% { text-shadow: 0 0 4px rgba(255,255,0,0.9), 0 0 8px rgba(255,255,0,0.35); }
+}
+
+/* OLED burn-in fade */
 .oled-burnin {
   position: absolute;
   top: 0;
@@ -112,6 +113,15 @@ body {
   opacity: 0.02;
 }
 
+.oled-burnin div {
+  animation: burnFade 60s linear forwards;
+}
+
+@keyframes burnFade {
+  from { opacity: 0.02; }
+  to { opacity: 0; }
+}
+
 /* ===== LCD ===== */
 #lcd {
   position: absolute;
@@ -119,19 +129,15 @@ body {
   top: 30.2%;
   width: 69.66%;
   height: 11.54%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   font-family: 'Orbitron', monospace;
-  font-weight: 700;
+  font-weight: 900; /* thicker for readability */
   color: #00ff55;
-
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
-
   text-shadow: 0 0 2px rgba(0,255,85,0.6), 0 0 6px rgba(0,255,85,0.3);
 }
 
@@ -254,20 +260,18 @@ function fitScaledText(container, elements, widthRatio) {
   const lineHeight = rect.height / elements.length;
   const usableWidth = rect.width * widthRatio;
   let scale = Infinity;
-
   elements.forEach(el => {
     el.style.transform = "scale(1)";
     const sx = usableWidth / el.scrollWidth;
     const sy = lineHeight / el.getBoundingClientRect().height;
     scale = Math.min(scale, sx, sy);
   });
-
   elements.forEach(el => {
     el.style.transform = `scale(${scale})`;
   });
 }
 
-/* ===== OLED update with burn-in ===== */
+/* ===== OLED update ===== */
 function updateOLED() {
   [o1,o2,o3,o4].forEach(l => l.style.opacity = 0.4);
 
@@ -287,17 +291,15 @@ function updateOLED() {
       <div class="oled-line-3">${o3.textContent}</div>
       <div class="oled-line-4">${o4.textContent}</div>
     `;
-    burninLayer.style.opacity = 0.02;
   });
 }
 
-/* ===== LCD update WITHOUT flicker ===== */
+/* ===== LCD update without flicker ===== */
 function updateLCD() {
   lcdText.innerHTML = "";
   const chars = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   );
-
   chars.forEach((ch, i) => {
     const s = document.createElement("span");
     s.className = "lcd-char";
@@ -305,7 +307,6 @@ function updateLCD() {
     s.style.animationDelay = `${i*40}ms`;
     lcdText.appendChild(s);
   });
-
   fitScaledText(document.getElementById("lcd"), [lcdText], LCD_TEXT_WIDTH);
 }
 
