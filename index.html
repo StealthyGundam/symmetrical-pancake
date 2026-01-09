@@ -166,24 +166,15 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// NEW: scale each line individually with width+height constraints
-function scaleLine(el){
+// Original scaling: height first
+function scaleText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
   if(!span) return;
-  span.style.fontSize = "10px"; // reset
+  span.style.fontSize = "10px";
 
-  const padding = 0.92; // 8% padding
-  const maxWidth = container.clientWidth * padding;
-  const maxHeight = container.clientHeight * padding;
-
-  let fontSize = maxHeight;
-  span.style.fontSize = fontSize + "px";
-
-  while(span.scrollWidth > maxWidth && fontSize > 1){
-    fontSize -= 1;
-    span.style.fontSize = fontSize + "px";
-  }
+  const containerHeight = container.clientHeight * 0.92;
+  span.style.fontSize = containerHeight+"px";
 }
 
 function updateOLED(){
@@ -192,10 +183,10 @@ function updateOLED(){
   o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
   o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
 
-  scaleLine(o1);
-  scaleLine(o2);
-  scaleLine(o3);
-  scaleLine(o4);
+  scaleText(o1);
+  scaleText(o2);
+  scaleText(o3);
+  scaleText(o4);
 }
 
 function updateLCD(){
