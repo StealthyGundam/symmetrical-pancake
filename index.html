@@ -106,7 +106,7 @@ body {
 <div id="keypad-container">
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
-  <!-- OLED Lines with percentage positions -->
+  <!-- OLED Lines -->
   <div class="oled-line" style="left:15.1%; top:4%; width:70%; height:6.2%;">
     <img src="assets/Keypad__OLED LINE 1.png">
     <span id="oled1"></span>
@@ -166,23 +166,25 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
+// Universal scaling function: width-first, then height
 function scaleText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
   if(!span) return;
   span.style.fontSize = "10px"; // reset
 
-  const containerWidth = container.clientWidth*0.92; // 8% padding
-  const containerHeight = container.clientHeight*0.92;
+  const padding = 0.92; // 8% padding
+  const containerWidth = container.clientWidth * padding;
+  const containerHeight = container.clientHeight * padding;
 
-  // Start with height-based font size
+  // Start with height as upper limit
   let fontSize = containerHeight;
-  span.style.fontSize = fontSize+"px";
+  span.style.fontSize = fontSize + "px";
 
-  // Constrain to width if it overflows
-  if(span.scrollWidth > containerWidth){
-    fontSize = fontSize * containerWidth / span.scrollWidth;
-    span.style.fontSize = fontSize+"px";
+  // Reduce font until it fits horizontally
+  while(span.scrollWidth > containerWidth && fontSize > 1){
+    fontSize -= 1;
+    span.style.fontSize = fontSize + "px";
   }
 }
 
