@@ -71,10 +71,6 @@ body {
   white-space: nowrap;
   box-sizing: border-box;
   line-height: 1;
-  padding: 5%;
-  margin: 0;
-  /* Glow effect for all lines */
-  text-shadow: 0 0 2px rgba(255,255,255,0.6), 0 0 6px rgba(255,255,255,0.25);
 }
 
 /* Scanlines for all lines (thinner) */
@@ -95,7 +91,6 @@ body {
   50% { opacity: 0.95; }
   75% { opacity: 0.9; }
 }
-
 #oled2 span {
   animation: oledFlicker 0.15s infinite alternate;
 }
@@ -104,11 +99,20 @@ body {
 .flash {
   animation: flashPulse 0.15s;
 }
-
 @keyframes flashPulse {
   0% { opacity: 1; }
   50% { opacity: 1.3; }
   100% { opacity: 1; }
+}
+
+/* Fade / burn effect for text updates */
+.fade-burn {
+  animation: fadeBurn 0.3s ease-in-out;
+}
+@keyframes fadeBurn {
+  0% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0; filter: brightness(0.5); }
+  100% { opacity: 1; filter: brightness(1); }
 }
 
 /* ===== LCD ===== */
@@ -217,8 +221,8 @@ function scaleLineText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
   if(!span) return;
-  const maxWidth = container.clientWidth - container.clientWidth*0.1; 
-  const maxHeight = container.clientHeight - container.clientHeight*0.1;
+  const maxWidth = container.clientWidth; 
+  const maxHeight = container.clientHeight;
   const text = span.textContent;
   let fontSize = maxHeight;
   const canvas = document.createElement("canvas");
@@ -250,6 +254,16 @@ function scaleLCD(){
   span.style.fontSize = fontSize + "px";
 }
 
+// ===== Apply fade-burn effect when updating text
+function setTextWithFade(el, html){
+  const span = el.querySelector("span");
+  if(!span) return;
+  span.classList.remove("fade-burn");
+  void span.offsetWidth; // trigger reflow
+  span.innerHTML = html;
+  span.classList.add("fade-burn");
+}
+
 function flashLine(el){
   const span = el.querySelector("span");
   if(!span) return;
@@ -258,18 +272,18 @@ function flashLine(el){
 }
 
 function updateOLED(){
-  o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
-  o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
-  o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
-  o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
+  setTextWithFade(o1, `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`);
+  setTextWithFade(o2, `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`);
+  setTextWithFade(o3, `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`);
+  setTextWithFade(o4, `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`);
 
   scaleLineText(o1);
   scaleLineText(o2);
   scaleLineText(o3);
   scaleLineText(o4);
 
-  if(cipherCountdown % 1 === 0) flashLine(o2); // flash cipher
-  if(lockout>0) flashLine(o4);                // flash lockout
+  if(cipherCountdown % 1 === 0) flashLine(o2);
+  if(lockout>0) flashLine(o4);
 }
 
 function updateLCD(){
