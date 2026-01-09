@@ -68,7 +68,7 @@ body {
 
 #oled div {
   flex: 1;
-  width: 92%;          /* OLED inner width (%) */
+  width: 92%;
   margin: 0 auto;
 
   display: flex;
@@ -86,7 +86,7 @@ body {
 .oled-line-3 { color: yellow; letter-spacing: 0.05em; }
 .oled-line-4 { color: red; }
 
-/* ===== LCD (unchanged) ===== */
+/* ===== LCD ===== */
 #lcd {
   position: absolute;
   left: 15.25%;
@@ -95,20 +95,36 @@ body {
   height: 11.54%;
 
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 
   font-family: 'Orbitron', monospace;
-  font-size: 1.3em;
+  font-weight: 700;
   color: #00ff55;
 
+  overflow: hidden;
   white-space: nowrap;
-  letter-spacing: 0.2em;
-  padding: 10px;
+  box-sizing: border-box;
 
   text-shadow:
     0 0 1px rgba(0,255,85,0.4),
     0 0 3px rgba(0,255,85,0.25);
+}
+
+#lcd span {
+  width: 90%;              /* LCD inner width (%) */
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  letter-spacing: 0.2em;
+  line-height: 1;
+  font-size: 1em;
+
+  transform-origin: center center;
+  white-space: nowrap;
 }
 
 /* Keys */
@@ -139,7 +155,9 @@ body {
     <div id="oled4" class="oled-line-4"></div>
   </div>
 
-  <div id="lcd"></div>
+  <div id="lcd">
+    <span id="lcdText"></span>
+  </div>
 
   <!-- Buttons -->
   <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
@@ -157,40 +175,25 @@ body {
 </div>
 
 <script>
-/* ===== Audio autoplay fallback ===== */
+/* ===== Audio + Fullscreen ===== */
 const audio = document.getElementById("bg-audio");
 audio.play().catch(() => {
   document.addEventListener("click", () => audio.play(), { once: true });
 });
 
-/* ===== Fullscreen lock (restored) ===== */
-document.body.addEventListener(
-  "click",
-  () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  },
-  { once: true }
-);
+document.body.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}, { once: true });
 
-document.body.addEventListener(
-  "touchstart",
-  () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  },
-  { once: true }
-);
-
-/* ===== Logic ===== */
+/* ===== Constants ===== */
 const PASSWORD = "01234567";
 const MAX_LEN = 8;
 const LOCKOUT_DURATION = 15;
 
-/* MUST match CSS width (92% → 0.92) */
 const OLED_TEXT_WIDTH = 0.92;
+const LCD_TEXT_WIDTH  = 0.90;
 
 let input = "";
 let lockout = 0;
@@ -201,7 +204,7 @@ const o1 = document.getElementById("oled1");
 const o2 = document.getElementById("oled2");
 const o3 = document.getElementById("oled3");
 const o4 = document.getElementById("oled4");
-const lcd = document.getElementById("lcd");
+const lcdText = document.getElementById("lcdText");
 
 document.addEventListener("contextmenu", e => e.preventDefault());
 
@@ -214,25 +217,23 @@ function generateCipher() {
   cipherCountdown = 30;
 }
 
-/* Shared scale for all OLED lines */
-function fitOLEDText() {
-  const oled = document.getElementById("oled");
-  const lines = oled.querySelectorAll("div");
-  const rect = oled.getBoundingClientRect();
-  const lineHeight = rect.height / lines.length;
-  const usableWidth = rect.width * OLED_TEXT_WIDTH;
+/* ===== Shared scaler ===== */
+function fitScaledText(container, elements, widthRatio) {
+  const rect = container.getBoundingClientRect();
+  const lineHeight = rect.height / elements.length;
+  const usableWidth = rect.width * widthRatio;
 
   let scale = Infinity;
 
-  lines.forEach(line => {
-    line.style.transform = "scale(1)";
-    const scaleX = usableWidth / line.scrollWidth;
-    const scaleY = lineHeight / line.getBoundingClientRect().height;
+  elements.forEach(el => {
+    el.style.transform = "scale(1)";
+    const scaleX = usableWidth / el.scrollWidth;
+    const scaleY = lineHeight / el.getBoundingClientRect().height;
     scale = Math.min(scale, scaleX, scaleY);
   });
 
-  lines.forEach(line => {
-    line.style.transform = `scale(${scale})`;
+  elements.forEach(el => {
+    el.style.transform = `scale(${scale})`;
   });
 }
 
@@ -241,13 +242,24 @@ function updateOLED() {
   o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
   o3.textContent = cipher.join("");
   o4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
-  fitOLEDText();
+
+  fitScaledText(
+    document.getElementById("oled"),
+    [o1, o2, o3, o4],
+    OLED_TEXT_WIDTH
+  );
 }
 
 function updateLCD() {
-  lcd.textContent = Array.from({ length: MAX_LEN }, (_, i) =>
+  lcdText.textContent = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   ).join(" ");
+
+  fitScaledText(
+    document.getElementById("lcd"),
+    [lcdText],
+    LCD_TEXT_WIDTH
+  );
 }
 
 generateCipher();
@@ -287,8 +299,14 @@ document.querySelectorAll(".key").forEach(btn => {
   };
 });
 
-window.addEventListener("load", updateOLED);
-window.addEventListener("resize", updateOLED);
+window.addEventListener("load", () => {
+  updateOLED();
+  updateLCD();
+});
+window.addEventListener("resize", () => {
+  updateOLED();
+  updateLCD();
+});
 </script>
 
 </body>
