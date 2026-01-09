@@ -69,6 +69,7 @@ body {
   text-align: center;
   white-space: nowrap;
   box-sizing: border-box;
+  line-height: 1;
 }
 
 /* Line colors and glow effects */
@@ -171,13 +172,21 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// scale horizontally and vertically to fill container
+// scale text to fill container horizontally & vertically
 function scaleText(el){
   const container = el.parentElement;
-  const wScale = (container.clientWidth*0.92)/el.scrollWidth;
-  const hScale = (container.clientHeight*0.92)/el.scrollHeight;
-  const scale = Math.min(wScale, hScale);
-  el.style.transform = `scale(${scale})`;
+  el.style.fontSize = "10px"; // reset
+  const containerWidth = container.clientWidth*0.92;
+  const containerHeight = container.clientHeight*0.92;
+
+  let fontSize = containerHeight;
+  el.style.fontSize = fontSize+"px";
+
+  // reduce font if too wide
+  if(el.scrollWidth > containerWidth){
+    fontSize = fontSize * containerWidth / el.scrollWidth;
+    el.style.fontSize = fontSize+"px";
+  }
 }
 
 function updateOLED(){
