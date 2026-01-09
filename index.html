@@ -172,12 +172,14 @@ function scaleText(el){
   if(!span) return;
   span.style.fontSize = "10px"; // reset
 
-  const containerWidth = container.clientWidth*0.92;
+  const containerWidth = container.clientWidth*0.92; // 8% padding
   const containerHeight = container.clientHeight*0.92;
 
+  // Start with height-based font size
   let fontSize = containerHeight;
   span.style.fontSize = fontSize+"px";
 
+  // Constrain to width if it overflows
   if(span.scrollWidth > containerWidth){
     fontSize = fontSize * containerWidth / span.scrollWidth;
     span.style.fontSize = fontSize+"px";
@@ -185,10 +187,10 @@ function scaleText(el){
 }
 
 function updateOLED(){
-  o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
-  o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
-  o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
-  o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
+  o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
+  o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
+  o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
+  o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
 
   scaleText(o1);
   scaleText(o2);
