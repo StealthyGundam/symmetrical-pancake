@@ -81,7 +81,7 @@ body {
 
 /* Line positions */
 #oled1 { top: 0%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
-#oled2 { top: 12%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); animation: glowPulse 2s infinite alternate; height:36%; }
+#oled2 { top: 12%; color: yellow; letter-spacing:0.05em; text-shadow:0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25); height:36%; animation: glowPulse 2s infinite alternate; } /* combined 2+3 */
 #oled4 { top: 55%; color: orange; text-shadow:0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25); }
 #oled5 { top: 70%; color: transparent; }
 #oled6 { top: 75%; color: red; text-shadow:0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3); }
@@ -127,7 +127,7 @@ body {
 
   <div id="oled">
     <div id="oled1"></div>
-    <div id="oled2"></div> <!-- Cipher numbers, visually double height -->
+    <div id="oled2"></div> <!-- combined line 2+3 for big cipher numbers -->
     <div id="oled4"></div>
     <div id="oled5"></div>
     <div id="oled6"></div>
@@ -162,7 +162,7 @@ const PASSWORD="01234567", MAX_LEN=8, LOCKOUT_DURATION=15;
 let input="", lockout=0, cipher=[], cipherCountdown=30;
 
 const o1=document.getElementById("oled1");
-const o2=document.getElementById("oled2"); // large cipher numbers
+const o2=document.getElementById("oled2"); // big cipher numbers
 const o4=document.getElementById("oled4");
 const o5=document.getElementById("oled5");
 const o6=document.getElementById("oled6");
@@ -172,11 +172,10 @@ const oledContainer=document.getElementById("oled");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// scale considering width and height, works on mobile
+// scale both horizontally and vertically to fill container
 function scaleLine(line, maxHeight){
-  const rect = line.getBoundingClientRect();
-  const wScale = (oledContainer.clientWidth*0.92)/rect.width;
-  const hScale = maxHeight / rect.height;
+  const wScale = (oledContainer.clientWidth*0.92)/line.scrollWidth;
+  const hScale = maxHeight / line.scrollHeight;
   const scale = Math.min(wScale, hScale);
   line.style.transform = `translateX(-50%) scale(${scale})`;
 }
@@ -184,54 +183,4 @@ function scaleLine(line, maxHeight){
 function updateOLED(){
   o1.textContent="DECIPHER YOUR ACCESS CODE";
   o2.textContent=cipher.join("");
-  o4.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`;
-  o5.textContent="";
-  o6.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:"";
-
-  scaleLine(o1, oledContainer.clientHeight*0.12);
-  scaleLine(o2, oledContainer.clientHeight*0.36); // double height for cipher
-  scaleLine(o4, oledContainer.clientHeight*0.12);
-  scaleLine(o5, oledContainer.clientHeight*0.12);
-  scaleLine(o6, oledContainer.clientHeight*0.12);
-}
-
-function updateLCD(){
-  lcdText.textContent=Array.from({length:MAX_LEN},(_,i)=>i<input.length?"*":"-").join(" ");
-}
-
-// ensure font loaded before initial scaling
-document.fonts.ready.then(()=>{
-  generateCipher();
-  updateOLED();
-  updateLCD();
-});
-
-setInterval(()=>{
-  if(lockout>0) lockout--;
-  cipherCountdown--;
-  if(cipherCountdown<=0) generateCipher();
-  updateOLED();
-},1000);
-
-document.querySelectorAll(".key").forEach(btn=>{
-  btn.onclick=()=>{
-    if(lockout>0)return;
-    const k=btn.dataset.key;
-    if(k==="CLR") input="";
-    else if(k==="ENT"){
-      const ciphered=input.split("").map(d=>cipher[d]).join("");
-      if(ciphered===PASSWORD){
-        document.body.innerHTML="<h1 style='color:#0f0;font-family:Share Tech Mono'>ACCESS GRANTED</h1>";
-        return;
-      }
-      input=""; lockout=LOCKOUT_DURATION;
-    } else if(input.length<MAX_LEN) input+=k;
-    updateLCD(); updateOLED();
-  }
-});
-
-window.addEventListener("resize",()=>{updateOLED(); updateLCD();});
-</script>
-
-</body>
-</html>
+  o4.textContent=`CIPHER WILL CHANGE IN ${padZero(ciph
