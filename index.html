@@ -11,13 +11,6 @@
        loop>
 </audio>
 
-<script>
-const audio = document.getElementById('bg-audio');
-audio.play().catch(() => {
-  document.addEventListener('click', () => audio.play(), { once: true });
-});
-</script>
-
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
 <style>
@@ -75,7 +68,7 @@ body {
 
 #oled div {
   flex: 1;
-  width: 92%;                 /* ← OLED TEXT WIDTH (%) */
+  width: 92%;          /* OLED inner width (%) */
   margin: 0 auto;
 
   display: flex;
@@ -164,11 +157,39 @@ body {
 </div>
 
 <script>
+/* ===== Audio autoplay fallback ===== */
+const audio = document.getElementById("bg-audio");
+audio.play().catch(() => {
+  document.addEventListener("click", () => audio.play(), { once: true });
+});
+
+/* ===== Fullscreen lock (restored) ===== */
+document.body.addEventListener(
+  "click",
+  () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  },
+  { once: true }
+);
+
+document.body.addEventListener(
+  "touchstart",
+  () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  },
+  { once: true }
+);
+
+/* ===== Logic ===== */
 const PASSWORD = "01234567";
 const MAX_LEN = 8;
 const LOCKOUT_DURATION = 15;
 
-/* 🔧 MATCH THIS TO CSS WIDTH (92% → 0.92) */
+/* MUST match CSS width (92% → 0.92) */
 const OLED_TEXT_WIDTH = 0.92;
 
 let input = "";
@@ -199,8 +220,8 @@ function fitOLEDText() {
   const lines = oled.querySelectorAll("div");
   const rect = oled.getBoundingClientRect();
   const lineHeight = rect.height / lines.length;
-
   const usableWidth = rect.width * OLED_TEXT_WIDTH;
+
   let scale = Infinity;
 
   lines.forEach(line => {
