@@ -92,7 +92,7 @@ body {
   text-shadow: 0 0 2px rgba(0,255,85,0.6), 0 0 6px rgba(0,255,85,0.3);
 }
 
-#lcd span { width: 90%; display: flex; justify-content:center; align-items:center; transform-origin:center; }
+#lcd span { width: 100%; display: flex; justify-content:center; align-items:center; transform-origin:center; }
 .lcd-char { min-width:1ch; text-align:center; }
 
 /* ===== Keys ===== */
@@ -166,10 +166,42 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// ===== Canvas-based width+height scaling for horizontal fit
+// ===== Canvas-based horizontal+vertical scaling
 function scaleLineText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
+  if(!span) return;
+
+  const maxWidth = container.clientWidth;
+  const maxHeight = container.clientHeight;
+
+  const text = span.textContent;
+  let fontSize = maxHeight;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.font = `${fontSize}px 'Share Tech Mono'`;
+
+  while(ctx.measureText(text).width > maxWidth && fontSize > 1){
+    fontSize -= 1;
+    ctx.font = `${fontSize}px 'Share Tech Mono'`;
+  }
+
+  span.style.fontSize = fontSize + "px";
+}
+
+// Vertical scaling for numbers
+function scaleText(el){
+  const container = el.parentElement;
+  const span = el.querySelector("span");
+  if(!span) return;
+  const containerHeight = container.clientHeight;
+  span.style.fontSize = containerHeight+"px";
+}
+
+function scaleLCD(){
+  const container = lcdText.parentElement;
+  const span = lcdText;
   if(!span) return;
 
   const maxWidth = container.clientWidth;
@@ -196,24 +228,15 @@ function updateOLED(){
   o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
   o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
 
-  // Scale lines
   scaleLineText(o1);
-  scaleText(o2);       // numbers vertical scale only
-  scaleLineText(o3);   // horizontal + vertical fit
-  scaleLineText(o4);   // horizontal + vertical fit
-}
-
-// Vertical scale for line 2
-function scaleText(el){
-  const container = el.parentElement;
-  const span = el.querySelector("span");
-  if(!span) return;
-  const containerHeight = container.clientHeight;
-  span.style.fontSize = containerHeight+"px";
+  scaleText(o2);       // numbers vertical only
+  scaleLineText(o3);
+  scaleLineText(o4);
 }
 
 function updateLCD(){
   lcdText.textContent=Array.from({length:MAX_LEN},(_,i)=>i<input.length?"*":"-").join(" ");
+  scaleLCD();
 }
 
 generateCipher();
