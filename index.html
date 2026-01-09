@@ -53,6 +53,7 @@ body {
 }
 
 /* OLED constrained to PNG */
+/* OLED Container */
 #oled {
   position: absolute;
   left: 13.68%;
@@ -60,16 +61,13 @@ body {
   width: 72.59%;
   height: 22.18%;
 
-  display: grid;
-  grid-template-rows: repeat(4, 1fr);
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around; /* evenly space the 4 lines */
   align-items: center;
 
   font-family: 'Orbitron', monospace;
   font-weight: 700;
-  font-size: 0.65em;
-  text-align: center;
-  text-transform: uppercase;
 
   overflow: hidden;
   box-sizing: border-box;
@@ -78,12 +76,26 @@ body {
   text-shadow:
     0 0 1px rgba(255,165,0,0.5),
     0 0 3px rgba(255,165,0,0.25);
+
+  white-space: nowrap; /* prevent wrapping */
 }
 
-.oled-line-1 { color: orange; }
-.oled-line-2 { color: orange; }
-.oled-line-3 { color: yellow; letter-spacing: 0.05em; }
-.oled-line-4 { color: red; }
+/* Each OLED line scales relative to container height */
+#oled div {
+  width: 100%;
+  text-align: center;
+  line-height: 1;
+
+  /* Scale text dynamically: 20% of OLED height per line roughly */
+  font-size: calc(0.2 * 100%);
+}
+
+/* Optional: fine-tune individual lines */
+.oled-line-1 { color: orange; font-size: calc(0.22 * 100%); }
+.oled-line-2 { color: orange; font-size: calc(0.2 * 100%); }
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; font-size: calc(0.18 * 100%); }
+.oled-line-4 { color: red; font-size: calc(0.18 * 100%); }
+
 
 /* LCD */
 #lcd {
