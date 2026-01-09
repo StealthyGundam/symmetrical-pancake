@@ -93,7 +93,7 @@ body {
 }
 
 #lcd span { 
-  width: 92%; /* horizontal padding applied */
+  width: 92%; /* horizontal padding */
   display: flex; 
   justify-content: center; 
   align-items: center; 
@@ -173,7 +173,7 @@ const lcdText=document.getElementById("lcdText");
 function generateCipher(){ cipher=[..."0123456789"].sort(()=>Math.random()-0.5); cipherCountdown=30; }
 function padZero(n){ return n<10?"0"+n:n; }
 
-// ===== Canvas-based scaling
+// ===== Scaling function for OLED lines
 function scaleLineText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
@@ -192,17 +192,72 @@ function scaleLineText(el){
   span.style.fontSize = fontSize + "px";
 }
 
-function scaleText(el){
-  const container = el.parentElement;
-  const span = el.querySelector("span");
-  if(!span) return;
-  const containerHeight = container.clientHeight;
-  span.style.fontSize = containerHeight+"px";
-}
-
+// ===== Scaling for LCD
 function scaleLCD(){
   const container = lcdText.parentElement;
   const span = lcdText;
   if(!span) return;
-  const maxWidth = container.clientWidth * 0.92; // 92% padding
-  const maxHeight = c
+  const maxWidth = container.clientWidth * 0.92;
+  const maxHeight = container.clientHeight;
+  const text = span.textContent;
+  let fontSize = maxHeight;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.font = `${fontSize}px 'Share Tech Mono'`;
+  while(ctx.measureText(text).width > maxWidth && fontSize > 1){
+    fontSize -= 1;
+    ctx.font = `${fontSize}px 'Share Tech Mono'`;
+  }
+  span.style.fontSize = fontSize + "px";
+}
+
+function updateOLED(){
+  o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
+  o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
+  o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
+  o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7),0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
+
+  scaleLineText(o1);
+  scaleLineText(o2);
+  scaleLineText(o3);
+  scaleLineText(o4);
+}
+
+function updateLCD(){
+  lcdText.textContent=Array.from({length:MAX_LEN},(_,i)=>i<input.length?"*":"-").join(" ");
+  scaleLCD();
+}
+
+generateCipher();
+updateOLED();
+updateLCD();
+
+setInterval(()=>{
+  if(lockout>0) lockout--;
+  cipherCountdown--;
+  if(cipherCountdown<=0) generateCipher();
+  updateOLED();
+},1000);
+
+document.querySelectorAll(".key").forEach(btn=>{
+  btn.onclick=()=>{
+    if(lockout>0)return;
+    const k=btn.dataset.key;
+    if(k==="CLR") input="";
+    else if(k==="ENT"){
+      const ciphered=input.split("").map(d=>cipher[d]).join("");
+      if(ciphered===PASSWORD){
+        document.body.innerHTML="<h1 style='color:#0f0;font-family:Share Tech Mono'>ACCESS GRANTED</h1>";
+        return;
+      }
+      input=""; lockout=LOCKOUT_DURATION;
+    } else if(input.length<MAX_LEN) input+=k;
+    updateLCD(); updateOLED();
+  }
+});
+
+window.addEventListener("resize",()=>{updateOLED(); updateLCD();});
+</script>
+
+</body>
+</html>
