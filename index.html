@@ -55,28 +55,23 @@ body {
 
   font-family: 'Orbitron', monospace;
   font-weight: 700;
-  color: #ffa500;
 
   overflow: hidden;
   box-sizing: border-box;
   white-space: nowrap;
-
-  text-shadow:
-    0 0 2px rgba(255,165,0,0.6),
-    0 0 6px rgba(255,165,0,0.25);
 }
 
-/* OLED scanlines */
 #oled::after {
   content: "";
   position: absolute;
   inset: 0;
+  /* Reduced scanline effect */
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0,0,0,0.15) 0px,
-    rgba(0,0,0,0.15) 1px,
-    transparent 2px,
-    transparent 4px
+    rgba(0,0,0,0.08) 0px,
+    rgba(0,0,0,0.08) 0.5px,
+    transparent 1px,
+    transparent 2px
   );
   pointer-events: none;
 }
@@ -98,8 +93,10 @@ body {
   transition: opacity 0.15s ease;
 }
 
-.oled-line-3 { color: yellow; letter-spacing: 0.05em; }
-.oled-line-4 { color: red; }
+.oled-line-1 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+.oled-line-2 { color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
+.oled-line-4 { color: red; text-shadow: 0 0 2px rgba(255,0,0,0.6), 0 0 6px rgba(255,0,0,0.25); }
 
 /* OLED burn-in effect */
 .oled-burnin {
@@ -107,13 +104,12 @@ body {
   top: 0;
   left: 0;
   pointer-events: none;
-  color: #ffa500;
-  opacity: 0.02;
   font-family: 'Orbitron', monospace;
   font-weight: 700;
   white-space: nowrap;
   z-index: 0;
   mix-blend-mode: lighten;
+  opacity: 0.02;
 }
 
 /* ===== LCD ===== */
@@ -136,9 +132,7 @@ body {
   white-space: nowrap;
   box-sizing: border-box;
 
-  text-shadow:
-    0 0 2px rgba(0,255,85,0.6),
-    0 0 6px rgba(0,255,85,0.3);
+  text-shadow: 0 0 2px rgba(0,255,85,0.6), 0 0 6px rgba(0,255,85,0.3);
 }
 
 #lcd span {
@@ -146,7 +140,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  transform-origin: center center;
+  transform-origin: center;
 }
 
 .lcd-char {
@@ -155,24 +149,11 @@ body {
   opacity: 0;
   filter: blur(0.4px);
   animation: lcdFadeIn 0.15s ease forwards;
-  position: relative;
-}
-
-/* LCD flicker/noise */
-.lcd-char.flicker {
-  animation: lcdFlicker 0.2s infinite;
 }
 
 @keyframes lcdFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
-}
-
-@keyframes lcdFlicker {
-  0%,100% { opacity: 1; transform: translateX(0); }
-  20%     { opacity: 0.85; transform: translateX(1px); }
-  50%     { opacity: 0.9; transform: translateX(-1px); }
-  70%     { opacity: 0.95; transform: translateX(0.5px); }
 }
 
 /* ===== Keys ===== */
@@ -197,8 +178,8 @@ body {
   <img id="keypad-base" src="assets/Keypad__BASE.png">
 
   <div id="oled">
-    <div id="oled1"></div>
-    <div id="oled2"></div>
+    <div id="oled1" class="oled-line-1"></div>
+    <div id="oled2" class="oled-line-2"></div>
     <div id="oled3" class="oled-line-3"></div>
     <div id="oled4" class="oled-line-4"></div>
   </div>
@@ -301,16 +282,16 @@ function updateOLED() {
 
     // Burn-in accumulation
     burninLayer.innerHTML += `
-      <div style="position:absolute;top:0;left:0;">${o1.textContent}</div>
-      <div style="position:absolute;top:25%;left:0;">${o2.textContent}</div>
-      <div style="position:absolute;top:50%;left:0;">${o3.textContent}</div>
-      <div style="position:absolute;top:75%;left:0;">${o4.textContent}</div>
+      <div class="oled-line-1">${o1.textContent}</div>
+      <div class="oled-line-2">${o2.textContent}</div>
+      <div class="oled-line-3">${o3.textContent}</div>
+      <div class="oled-line-4">${o4.textContent}</div>
     `;
-    burninLayer.style.opacity = 0.02; // subtle
+    burninLayer.style.opacity = 0.02;
   });
 }
 
-/* ===== LCD update with flicker ===== */
+/* ===== LCD update WITHOUT flicker ===== */
 function updateLCD() {
   lcdText.innerHTML = "";
   const chars = Array.from({ length: MAX_LEN }, (_, i) =>
@@ -322,10 +303,6 @@ function updateLCD() {
     s.className = "lcd-char";
     s.textContent = ch;
     s.style.animationDelay = `${i*40}ms`;
-
-    // Randomly assign flicker effect
-    if (Math.random() < 0.5) s.classList.add("flicker");
-
     lcdText.appendChild(s);
   });
 
