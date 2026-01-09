@@ -71,36 +71,38 @@ body {
   white-space: nowrap;
   box-sizing: border-box;
   line-height: 1;
-  padding: 5%; /* padding inside OLED PNG */
+  padding: 5%;
   margin: 0;
-  /* GLOW effect for all lines */
+  /* Glow effect for all lines */
   text-shadow: 0 0 2px rgba(255,255,255,0.6), 0 0 6px rgba(255,255,255,0.25);
 }
 
-/* Flicker only for line 2 */
-#oled2 span {
-  animation: oledFlicker 0.15s infinite alternate;
-}
-
-/* Scanlines for all lines */
+/* Scanlines for all lines (thinner) */
 .oled-line::after {
   content: "";
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: linear-gradient(rgba(255,255,255,0.05) 50%, transparent 50%);
-  background-size: 100% 4px;
+  background-size: 100% 2px; /* thinner scanlines */
   pointer-events: none;
+}
+
+/* Flicker only for line 2 (double flicker) */
+@keyframes oledFlicker {
+  0%, 100% { opacity: 1; }
+  25% { opacity: 0.92; }
+  50% { opacity: 0.95; }
+  75% { opacity: 0.9; }
+}
+
+#oled2 span {
+  animation: oledFlicker 0.15s infinite alternate;
 }
 
 /* Flash effect for lines 2 & 4 */
 .flash {
   animation: flashPulse 0.15s;
-}
-
-@keyframes oledFlicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.95; }
 }
 
 @keyframes flashPulse {
