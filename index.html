@@ -72,12 +72,6 @@ body {
   line-height: 1;
 }
 
-/* Line colors and glow effects */
-#oled1 span { text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-#oled2 span { text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25); }
-#oled3 span { text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25); }
-#oled4 span { text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3); }
-
 /* ===== LCD ===== */
 #lcd {
   position: absolute;
@@ -164,7 +158,7 @@ const PASSWORD="01234567", MAX_LEN=8, LOCKOUT_DURATION=15;
 let input="", lockout=0, cipher=[], cipherCountdown=30;
 
 const o1=document.getElementById("oled1");
-const o2=document.getElementById("oled2"); // big cipher numbers
+const o2=document.getElementById("oled2");
 const o3=document.getElementById("oled3");
 const o4=document.getElementById("oled4");
 const lcdText=document.getElementById("lcdText");
@@ -174,29 +168,27 @@ function padZero(n){ return n<10?"0"+n:n; }
 
 function scaleText(el){
   const container = el.parentElement;
-  el.style.fontSize = "10px"; // reset
+  const span = el.querySelector("span");
+  if(!span) return;
+  span.style.fontSize = "10px"; // reset
+
   const containerWidth = container.clientWidth*0.92;
   const containerHeight = container.clientHeight*0.92;
 
   let fontSize = containerHeight;
-  el.style.fontSize = fontSize+"px";
+  span.style.fontSize = fontSize+"px";
 
-  if(el.scrollWidth > containerWidth){
-    fontSize = fontSize * containerWidth / el.scrollWidth;
-    el.style.fontSize = fontSize+"px";
+  if(span.scrollWidth > containerWidth){
+    fontSize = fontSize * containerWidth / span.scrollWidth;
+    span.style.fontSize = fontSize+"px";
   }
 }
 
 function updateOLED(){
-  // Force colors dynamically
-  o1.textContent="DECIPHER YOUR ACCESS CODE"; 
-  o1.style.color="orange";
-  o2.textContent=cipher.join(""); 
-  o2.style.color="yellow";
-  o3.textContent=`CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC`; 
-  o3.style.color="orange";
-  o4.textContent=lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""; 
-  o4.style.color="red";
+  o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
+  o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6), 0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
+  o3.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6), 0 0 6px rgba(255,165,0,0.25)">CIPHER WILL CHANGE IN ${padZero(cipherCountdown)} SEC</span>`;
+  o4.innerHTML = `<span style="color: red; text-shadow: 0 0 3px rgba(255,0,0,0.7), 0 0 8px rgba(255,0,0,0.3)">${lockout>0?`LOCKED OUT: ${padZero(lockout)} SEC`:""}</span>`;
 
   scaleText(o1);
   scaleText(o2);
