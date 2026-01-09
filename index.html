@@ -75,7 +75,7 @@ body {
 
 #oled div {
   flex: 1;                       /* lock vertical positions */
-  width: 95%;
+  width: 70%;
          margin: 0 auto;     /* center it */
   display: flex;
   align-items: center;
@@ -200,7 +200,7 @@ function fitOLEDText() {
 
   lines.forEach(line => {
     line.style.transform = "scale(1)";
-    const usableWidth = rect.width * 0.95;   // ← match your 95%
+    const usableWidth = rect.width * 0.70;   // ← match your 70%
          
 const scaleX = usableWidth / line.scrollWidth;
 
