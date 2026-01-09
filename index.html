@@ -5,22 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keypad</title>
 
-    <audio id="bg-audio" 
-         src="https://raw.githubusercontent.com/StealthyGundam/symmetrical-pancake/main/assets/SWING.m4a" 
-         autoplay 
-         loop>
-  </audio>
+<audio id="bg-audio" 
+       src="https://raw.githubusercontent.com/StealthyGundam/symmetrical-pancake/main/assets/SWING.m4a" 
+       autoplay 
+       loop>
+</audio>
 
-    <script>
+<script>
 const audio = document.getElementById('bg-audio');
 
 audio.play().catch(() => {
-  // If autoplay is blocked, play on first user click
   document.addEventListener('click', () => audio.play());
 });
 </script>
-
-    
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
@@ -42,7 +39,7 @@ body {
 
 #keypad-container {
   position: relative;
-  width: 857px;           /* fixed to match base PNG */
+  width: 857px;
   max-width: 100%;
   aspect-ratio: 857 / 1297;
 }
@@ -52,7 +49,6 @@ body {
   display: block;
 }
 
-/* OLED constrained to PNG */
 /* OLED Container */
 #oled {
   position: absolute;
@@ -60,10 +56,9 @@ body {
   top: 3.8%;
   width: 72.59%;
   height: 22.18%;
-
   display: flex;
   flex-direction: column;
-  justify-content: space-around; /* evenly space the 4 lines */
+  justify-content: space-around;
   align-items: center;
 
   font-family: 'Orbitron', monospace;
@@ -71,31 +66,24 @@ body {
 
   overflow: hidden;
   box-sizing: border-box;
-
   color: #ffa500;
   text-shadow:
     0 0 1px rgba(255,165,0,0.5),
     0 0 3px rgba(255,165,0,0.25);
-
   white-space: nowrap; /* prevent wrapping */
 }
 
-/* Each OLED line scales relative to container height */
 #oled div {
   width: 100%;
   text-align: center;
   line-height: 1;
-
-  /* Scale text dynamically: 20% of OLED height per line roughly */
-  font-size: calc(0.4 * 100%);
+  font-size: 1px; /* initial size, will be scaled by JS */
 }
 
-/* Optional: fine-tune individual lines */
-.oled-line-1 { color: orange; font-size: calc(0.40 * 100%); }
-.oled-line-2 { color: orange; font-size: calc(0.2 * 100%); }
-.oled-line-3 { color: yellow; letter-spacing: 0.05em; font-size: calc(0.40 * 100%); }
-.oled-line-4 { color: red; font-size: calc(0.2 * 100%); }
-
+.oled-line-1 { color: orange; }
+.oled-line-2 { color: orange; }
+.oled-line-3 { color: yellow; letter-spacing: 0.05em; }
+.oled-line-4 { color: red; }
 
 /* LCD */
 #lcd {
@@ -111,11 +99,11 @@ body {
 
   font-family: 'Orbitron', monospace;
   font-size: 1.3em;
-  color: #00ff55; /* match LCD.png green */
+  color: #00ff55;
 
   white-space: nowrap;
   flex-wrap: nowrap;
-  letter-spacing: 0.2em; /* slightly more spacing */
+  letter-spacing: 0.2em;
   padding: 10px;
 
   text-shadow:
@@ -184,10 +172,8 @@ const o2 = document.getElementById("oled2");
 const o3 = document.getElementById("oled3");
 const o4 = document.getElementById("oled4");
 
-/* Disable right click */
 document.addEventListener("contextmenu", e => e.preventDefault());
 
-/* Fullscreen attempt */
 document.body.addEventListener("click", () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(()=>{});
@@ -203,11 +189,35 @@ function generateCipher() {
   cipherCountdown = 30;
 }
 
+/* Auto-fit text to OLED container */
+function fitOLEDText() {
+  const oled = document.getElementById("oled");
+  const lines = oled.querySelectorAll("div");
+
+  lines.forEach(line => {
+    let fontSize = 10;
+    const maxWidth = oled.clientWidth * 0.95;
+    const maxHeight = oled.clientHeight / lines.length * 0.95;
+
+    line.style.fontSize = fontSize + "px";
+
+    while (line.scrollWidth < maxWidth && line.scrollHeight < maxHeight) {
+      fontSize++;
+      line.style.fontSize = fontSize + "px";
+      if (fontSize > 500) break;
+    }
+
+    line.style.fontSize = (fontSize - 1) + "px";
+  });
+}
+
 function updateOLED() {
   o1.textContent = "DECIPHER YOUR ACCESS CODE";
   o2.textContent = `CIPHER WILL CHANGE IN ${cipherCountdown} SEC`;
   o3.textContent = cipher.join("");
   o4.textContent = lockout > 0 ? `LOCKED OUT: ${lockout} SEC` : "";
+
+  fitOLEDText();
 }
 
 function updateLCD() {
@@ -222,7 +232,6 @@ generateCipher();
 updateOLED();
 updateLCD();
 
-/* Main interval */
 setInterval(() => {
   if (lockout > 0) lockout--;
   cipherCountdown--;
@@ -230,7 +239,6 @@ setInterval(() => {
   updateOLED();
 }, 1000);
 
-/* Key presses */
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
     if (lockout > 0) return;
@@ -240,7 +248,6 @@ document.querySelectorAll(".key").forEach(btn => {
     if (k === "CLR") {
       input = "";
     } else if (k === "ENT") {
-      // check ciphered input
       let cipheredInput = input.split("").map(d => cipher[parseInt(d)]).join("");
       if (cipheredInput === PASSWORD) {
         document.body.innerHTML = "<h1 style='color:#0f0;font-family:Orbitron'>ACCESS GRANTED</h1>";
