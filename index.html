@@ -6,9 +6,9 @@
 <title>Keypad</title>
 
 <audio id="bg-audio"
-       src="https://raw.githubusercontent.com/StealthyGundam/symmetrical-pancake/main/assets/SWING.m4a"
-       autoplay
-       loop>
+  src="https://raw.githubusercontent.com/StealthyGundam/symmetrical-pancake/main/assets/SWING.m4a"
+  autoplay
+  loop>
 </audio>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
@@ -58,8 +58,8 @@ body {
   color: #ffa500;
 
   overflow: hidden;
-  white-space: nowrap;
   box-sizing: border-box;
+  white-space: nowrap;
 
   text-shadow:
     0 0 2px rgba(255,165,0,0.6),
@@ -71,14 +71,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.15) 0px,
-      rgba(0,0,0,0.15) 1px,
-      transparent 2px,
-      transparent 4px
-    );
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.15) 0px,
+    rgba(0,0,0,0.15) 1px,
+    transparent 2px,
+    transparent 4px
+  );
   pointer-events: none;
 }
 
@@ -91,12 +90,12 @@ body {
   align-items: center;
   justify-content: center;
 
-  line-height: 1;
   font-size: 1em;
+  line-height: 1;
   transform-origin: center center;
   white-space: nowrap;
 
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .oled-line-3 { color: yellow; letter-spacing: 0.05em; }
@@ -134,9 +133,7 @@ body {
   transform-origin: center center;
 }
 
-/* LCD character slots */
 .lcd-char {
-  display: inline-block;
   min-width: 1ch;
   text-align: center;
   opacity: 0;
@@ -149,7 +146,7 @@ body {
   to   { opacity: 1; }
 }
 
-/* Keys */
+/* ===== Keys ===== */
 .key {
   position: absolute;
   background: none;
@@ -181,8 +178,19 @@ body {
     <span id="lcdText"></span>
   </div>
 
-  <!-- Buttons -->
-  <!-- unchanged -->
+  <!-- ===== Buttons (RESTORED) ===== -->
+  <button class="key" data-key="1" style="left:15.42%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__1.png"></button>
+  <button class="key" data-key="2" style="left:39.63%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__2.png"></button>
+  <button class="key" data-key="3" style="left:63.55%;top:45.52%;width:20.69%;height:7.28%;"><img src="assets/Keypad__3.png"></button>
+  <button class="key" data-key="4" style="left:15.42%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__4.png"></button>
+  <button class="key" data-key="5" style="left:39.63%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__5.png"></button>
+  <button class="key" data-key="6" style="left:63.55%;top:54.33%;width:20.69%;height:7.28%;"><img src="assets/Keypad__6.png"></button>
+  <button class="key" data-key="7" style="left:15.42%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__7.png"></button>
+  <button class="key" data-key="8" style="left:39.63%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__8.png"></button>
+  <button class="key" data-key="9" style="left:63.55%;top:63.28%;width:20.69%;height:7.28%;"><img src="assets/Keypad__9.png"></button>
+  <button class="key" data-key="CLR" style="left:15.42%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__CLR.png"></button>
+  <button class="key" data-key="0" style="left:39.63%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__0.png"></button>
+  <button class="key" data-key="ENT" style="left:63.55%;top:72.21%;width:20.69%;height:7.28%;"><img src="assets/Keypad__ENT.png"></button>
 </div>
 
 <script>
@@ -194,15 +202,16 @@ audio.play().catch(() => {
 
 document.body.addEventListener("click", () => {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {});
+    document.documentElement.requestFullscreen().catch(()=>{});
   }
 }, { once: true });
+
+document.addEventListener("contextmenu", e => e.preventDefault());
 
 /* ===== Constants ===== */
 const PASSWORD = "01234567";
 const MAX_LEN = 8;
 const LOCKOUT_DURATION = 15;
-
 const OLED_TEXT_WIDTH = 0.92;
 const LCD_TEXT_WIDTH  = 0.90;
 
@@ -218,8 +227,6 @@ const o3 = document.getElementById("oled3");
 const o4 = document.getElementById("oled4");
 const lcdText = document.getElementById("lcdText");
 
-document.addEventListener("contextmenu", e => e.preventDefault());
-
 function generateCipher() {
   cipher = [..."0123456789"].sort(() => Math.random() - 0.5);
   cipherCountdown = 30;
@@ -230,14 +237,13 @@ function fitScaledText(container, elements, widthRatio) {
   const rect = container.getBoundingClientRect();
   const lineHeight = rect.height / elements.length;
   const usableWidth = rect.width * widthRatio;
-
   let scale = Infinity;
 
   elements.forEach(el => {
     el.style.transform = "scale(1)";
-    const scaleX = usableWidth / el.scrollWidth;
-    const scaleY = lineHeight / el.getBoundingClientRect().height;
-    scale = Math.min(scale, scaleX, scaleY);
+    const sx = usableWidth / el.scrollWidth;
+    const sy = lineHeight / el.getBoundingClientRect().height;
+    scale = Math.min(scale, sx, sy);
   });
 
   elements.forEach(el => {
@@ -260,27 +266,22 @@ function updateOLED() {
   });
 }
 
-/* ===== LCD with per-digit lag ===== */
+/* ===== LCD ===== */
 function updateLCD() {
   lcdText.innerHTML = "";
-
   const chars = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   );
 
   chars.forEach((ch, i) => {
-    const span = document.createElement("span");
-    span.className = "lcd-char";
-    span.textContent = ch;
-    span.style.animationDelay = `${i * 40}ms`;
-    lcdText.appendChild(span);
+    const s = document.createElement("span");
+    s.className = "lcd-char";
+    s.textContent = ch;
+    s.style.animationDelay = `${i * 40}ms`;
+    lcdText.appendChild(s);
   });
 
-  fitScaledText(
-    document.getElementById("lcd"),
-    [lcdText],
-    LCD_TEXT_WIDTH
-  );
+  fitScaledText(document.getElementById("lcd"), [lcdText], LCD_TEXT_WIDTH);
 }
 
 /* ===== Init ===== */
@@ -298,8 +299,8 @@ setInterval(() => {
 document.querySelectorAll(".key").forEach(btn => {
   btn.onclick = () => {
     if (lockout > 0) return;
-    const k = btn.dataset.key;
 
+    const k = btn.dataset.key;
     if (k === "CLR") input = "";
     else if (k === "ENT") {
       const ciphered = input.split("").map(d => cipher[d]).join("");
