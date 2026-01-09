@@ -66,6 +66,7 @@ body {
     0 0 6px rgba(255,165,0,0.25);
 }
 
+/* OLED scanlines */
 #oled::after {
   content: "";
   position: absolute;
@@ -100,6 +101,21 @@ body {
 .oled-line-3 { color: yellow; letter-spacing: 0.05em; }
 .oled-line-4 { color: red; }
 
+/* OLED burn-in effect */
+.oled-burnin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  color: #ffa500;
+  opacity: 0.02;
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  white-space: nowrap;
+  z-index: 0;
+  mix-blend-mode: lighten;
+}
+
 /* ===== LCD ===== */
 #lcd {
   position: absolute;
@@ -128,8 +144,8 @@ body {
 #lcd span {
   width: 90%;
   display: flex;
-  justify-content: center; /* CENTERING FIX */
-  align-items: center;     /* CENTERING FIX */
+  justify-content: center;
+  align-items: center;
   transform-origin: center center;
 }
 
@@ -139,11 +155,24 @@ body {
   opacity: 0;
   filter: blur(0.4px);
   animation: lcdFadeIn 0.15s ease forwards;
+  position: relative;
+}
+
+/* LCD flicker/noise */
+.lcd-char.flicker {
+  animation: lcdFlicker 0.2s infinite;
 }
 
 @keyframes lcdFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes lcdFlicker {
+  0%,100% { opacity: 1; transform: translateX(0); }
+  20%     { opacity: 0.85; transform: translateX(1px); }
+  50%     { opacity: 0.9; transform: translateX(-1px); }
+  70%     { opacity: 0.95; transform: translateX(0.5px); }
 }
 
 /* ===== Keys ===== */
@@ -227,12 +256,18 @@ const o3 = document.getElementById("oled3");
 const o4 = document.getElementById("oled4");
 const lcdText = document.getElementById("lcdText");
 
+/* ===== Burn-in container ===== */
+const oledContainer = document.getElementById("oled");
+const burninLayer = document.createElement("div");
+burninLayer.className = "oled-burnin";
+oledContainer.appendChild(burninLayer);
+
+/* ===== Functions ===== */
 function generateCipher() {
   cipher = [..."0123456789"].sort(() => Math.random() - 0.5);
   cipherCountdown = 30;
 }
 
-/* ===== Shared scaler ===== */
 function fitScaledText(container, elements, widthRatio) {
   const rect = container.getBoundingClientRect();
   const lineHeight = rect.height / elements.length;
@@ -251,7 +286,7 @@ function fitScaledText(container, elements, widthRatio) {
   });
 }
 
-/* ===== OLED ===== */
+/* ===== OLED update with burn-in ===== */
 function updateOLED() {
   [o1,o2,o3,o4].forEach(l => l.style.opacity = 0.4);
 
@@ -262,11 +297,20 @@ function updateOLED() {
 
   requestAnimationFrame(() => {
     [o1,o2,o3,o4].forEach(l => l.style.opacity = 1);
-    fitScaledText(document.getElementById("oled"), [o1,o2,o3,o4], OLED_TEXT_WIDTH);
+    fitScaledText(oledContainer, [o1,o2,o3,o4], OLED_TEXT_WIDTH);
+
+    // Burn-in accumulation
+    burninLayer.innerHTML += `
+      <div style="position:absolute;top:0;left:0;">${o1.textContent}</div>
+      <div style="position:absolute;top:25%;left:0;">${o2.textContent}</div>
+      <div style="position:absolute;top:50%;left:0;">${o3.textContent}</div>
+      <div style="position:absolute;top:75%;left:0;">${o4.textContent}</div>
+    `;
+    burninLayer.style.opacity = 0.02; // subtle
   });
 }
 
-/* ===== LCD ===== */
+/* ===== LCD update with flicker ===== */
 function updateLCD() {
   lcdText.innerHTML = "";
   const chars = Array.from({ length: MAX_LEN }, (_, i) =>
@@ -277,7 +321,11 @@ function updateLCD() {
     const s = document.createElement("span");
     s.className = "lcd-char";
     s.textContent = ch;
-    s.style.animationDelay = `${i * 40}ms`;
+    s.style.animationDelay = `${i*40}ms`;
+
+    // Randomly assign flicker effect
+    if (Math.random() < 0.5) s.classList.add("flicker");
+
     lcdText.appendChild(s);
   });
 
