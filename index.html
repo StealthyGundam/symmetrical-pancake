@@ -75,7 +75,7 @@ body {
 
 #oled div {
   flex: 1;                       /* lock vertical positions */
-  width: 50%;
+  width: 95%;
          margin: 0 auto;     /* center it */
   display: flex;
   align-items: center;
@@ -200,7 +200,8 @@ function fitOLEDText() {
 
   lines.forEach(line => {
     line.style.transform = "scale(1)";
-    const usableWidth = rect.width * 0.5;   // ← match your 50%
+    const usableWidth = rect.width * 0.95;   // ← match your 95%
+         
 const scaleX = usableWidth / line.scrollWidth;
 
     const scaleY = lineHeight / line.getBoundingClientRect().height;
@@ -224,7 +225,7 @@ function updateLCD() {
   lcd.textContent = Array.from({ length: MAX_LEN }, (_, i) =>
     i < input.length ? "*" : "-"
   ).join(" ");
-}
+}%
 
 generateCipher();
 updateOLED();
