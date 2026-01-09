@@ -48,6 +48,7 @@ body {
   font-weight: 700;
   white-space: nowrap;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .oled-line img {
@@ -70,6 +71,42 @@ body {
   white-space: nowrap;
   box-sizing: border-box;
   line-height: 1;
+  padding: 5%; /* padding inside OLED PNG */
+  margin: 0;
+  /* GLOW effect for all lines */
+  text-shadow: 0 0 2px rgba(255,255,255,0.6), 0 0 6px rgba(255,255,255,0.25);
+}
+
+/* Flicker only for line 2 */
+#oled2 span {
+  animation: oledFlicker 0.15s infinite alternate;
+}
+
+/* Scanlines for all lines */
+.oled-line::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(rgba(255,255,255,0.05) 50%, transparent 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Flash effect for lines 2 & 4 */
+.flash {
+  animation: flashPulse 0.15s;
+}
+
+@keyframes oledFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
+}
+
+@keyframes flashPulse {
+  0% { opacity: 1; }
+  50% { opacity: 1.3; }
+  100% { opacity: 1; }
 }
 
 /* ===== LCD ===== */
@@ -93,7 +130,7 @@ body {
 }
 
 #lcd span { 
-  width: 92%; /* horizontal padding */
+  width: 92%; 
   display: flex; 
   justify-content: center; 
   align-items: center; 
@@ -178,8 +215,8 @@ function scaleLineText(el){
   const container = el.parentElement;
   const span = el.querySelector("span");
   if(!span) return;
-  const maxWidth = container.clientWidth;
-  const maxHeight = container.clientHeight;
+  const maxWidth = container.clientWidth - container.clientWidth*0.1; 
+  const maxHeight = container.clientHeight - container.clientHeight*0.1;
   const text = span.textContent;
   let fontSize = maxHeight;
   const canvas = document.createElement("canvas");
@@ -211,6 +248,13 @@ function scaleLCD(){
   span.style.fontSize = fontSize + "px";
 }
 
+function flashLine(el){
+  const span = el.querySelector("span");
+  if(!span) return;
+  span.classList.add("flash");
+  setTimeout(()=>span.classList.remove("flash"),150);
+}
+
 function updateOLED(){
   o1.innerHTML = `<span style="color: orange; text-shadow: 0 0 2px rgba(255,165,0,0.6),0 0 6px rgba(255,165,0,0.25)">DECIPHER YOUR ACCESS CODE</span>`;
   o2.innerHTML = `<span style="color: yellow; text-shadow: 0 0 2px rgba(255,255,0,0.6),0 0 6px rgba(255,255,0,0.25)">${cipher.join("")}</span>`;
@@ -221,6 +265,9 @@ function updateOLED(){
   scaleLineText(o2);
   scaleLineText(o3);
   scaleLineText(o4);
+
+  if(cipherCountdown % 1 === 0) flashLine(o2); // flash cipher
+  if(lockout>0) flashLine(o4);                // flash lockout
 }
 
 function updateLCD(){
